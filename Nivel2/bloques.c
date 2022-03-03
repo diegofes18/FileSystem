@@ -15,6 +15,7 @@ int bmount(const char *camino){
 
     if(descriptor==-1){
 
+        perror("Error al abrir el fichero");
         return EXIT_FAILURE;
     }
     else{
@@ -33,7 +34,6 @@ int bumount(){
 
     if (close(descriptor)==-1) {
         
-        perror("Error en la lectura");
         return EXIT_FAILURE;
     }
     else{
@@ -64,7 +64,7 @@ int bwrite(unsigned int nbloque, const void *buf){
 
         }else{
 
-            perror("Error en la lectura");
+            perror("Error en la escritura");
             return EXIT_FAILURE;
         }
 
@@ -95,13 +95,13 @@ int bread(unsigned int nbloque, void *buf){
             //devolvemos los bytes leidos
             return b;
         }else{
-            
+
             perror("Error en la lectura");
             return EXIT_FAILURE;
         }
 
     }else{
-
+        
         perror("Error en el posicionamiento");
         return EXIT_FAILURE;
     }
