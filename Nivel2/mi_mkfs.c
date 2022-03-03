@@ -39,28 +39,31 @@ int main(int argc, char **argv){
     }
 
     //Iniciamos metadatos p
+    if (initSB(nbloques, ninodos) == EXIT_FAILURE){
 
-    if (initSB(nbloques, ninodos) == EXIT_FAILURE)
-    {
         perror("Fallo al iniciar el superbloque del despositivo virtual.\n");
         return EXIT_FAILURE;
     }
-    if (initMB() == EXIT_FAILURE)
-    {
+
+    if (initMB() == EXIT_FAILURE){
+
         perror("Fallo al iniciar el mapa de bits del despositivo virtual.\n");
         return EXIT_FAILURE;
     }
-    if (initAI() == EXIT_FAILURE)
-    {
+
+    if (initAI() == EXIT_FAILURE){
+
         perror("Fallo al iniciar el arrat de inodos del despositivo virtual.\n");
         return EXIT_FAILURE;
     }
     
     //Desmontamos el dispostivo virtual
-     if (bumount() == EXIT_FAILURE){
+    if (bumount() == EXIT_FAILURE){
+
         perror("Error al desmontar\n"); 
         return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS; 
 
 
