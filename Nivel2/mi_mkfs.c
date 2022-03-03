@@ -33,8 +33,7 @@ int main(int argc, char **argv){
         }
     }
     //Desmontamos el dispostivo virtual
-     if (bumount() == EXIT_FAILURE)
-    {
+     if (bumount() == EXIT_FAILURE){
         perror("Error al desmontar\n"); 
         return EXIT_FAILURE;
     }
