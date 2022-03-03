@@ -1,7 +1,9 @@
-#include <bloques.h>
+#include "bloques.h"
+#include <limits.h> 
 
 #define posSB 0 // el superbloque se escribe en el primer bloque de nuestro FS
 #define tamSB 1
+#define INODOSIZE 128 // tamaño en bytes de un inodo
 
 struct superbloque {
    unsigned int posPrimerBloqueMB;                      // Posición del primer bloque del mapa de bits
@@ -21,8 +23,8 @@ struct superbloque {
 
 struct inodo{
    
-   char tipo;
-   char permisos
+   unsigned char tipo;
+   unsigned char permisos;
 
     /* Por cuestiones internas de alineación de estructuras, si se está utilizando
     un tamaño de palabra de 4 bytes (microprocesadores de 32 bits):
