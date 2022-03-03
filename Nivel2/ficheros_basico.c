@@ -1,3 +1,5 @@
+#include "ficheros_basico.h"
+
 struct superbloque SB; //Definimos la zona de memoria (variable de tipo superbloque)
 int initSB(unsigned int nbloques, unsigned int ninodos)
 {
