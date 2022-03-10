@@ -129,7 +129,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
         
     struct superbloque SB;
     //Leemos el superbloque
-    if(bread(SBPOS,&SB)==-1){
+    if(bread(posSB,&SB)==-1){
         return -1;
     }
     //inicializamos las variables
@@ -193,7 +193,7 @@ char leer_bit(unsigned int nbloque){
     mascara >>= posbit;          // desplazamiento de bits a la derecha
     mascara &= bufferMB[posbyte]; // operador AND para bits
     mascara >>= (7 - posbit);     // desplazamiento de bits a la derecha))
-    return mascara
+    return mascara;
  }
  
 /*
@@ -204,7 +204,7 @@ lo ocupa  y devuelve su posición
     
     struct superbloque SB;
     //Leemos el superbloque
-    if(bread(SBPOS,&SB)==-1){
+    if(bread(posSB,&SB)==-1){
         return -1;
     }
     
@@ -315,21 +315,21 @@ int escribir_inodo(unsigned int ninodo, struct inodo inodo){
     }
 
     //Obtenemos el nº de bloque del array de inodos que tiene el inodo solicitado
-    bloqueArray=SB.posPrimerBloqueAI+(ninodo/(BLOCKSIZE/INODOSIZE));
+    unsigned int bloqueArray=SB.posPrimerBloqueAI+(ninodo/(BLOCKSIZE/INODOSIZE));
 
     //buffer de lectura de array de inodos
     struct inodo inodos[BLOCKSIZE/INODOSIZE];
 
     //Leemos el bloque del array de inodos correspondiente
-    if (bread(posBloqueInodo, inodos) == -1){
+    if (bread(bloqueArray, inodos) == -1){
         return -1;
     }
 
     //Escribimos el inodo en el lugar correspondiente del array
-    inodo=inodos[ninodo%(BLOCKSIZE/INODOSIZE)];
+    inodos[ninodo % (BLOCKSIZE / INODOSIZE)] = inodo;
 
     //Escribimos el bloque modificado en el dispositivo virtual
-    if (bwrite(nbloqueabs, bufferMB) == -1){
+    if (bwrite(bloqueArray, inodos) == -1){
         return -1;
     }
 
