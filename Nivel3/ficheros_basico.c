@@ -279,8 +279,6 @@ lo ocupa  y devuelve su posición
     }
 }
  
-
-
 /*
 Libera un bloque determinado 
 */
