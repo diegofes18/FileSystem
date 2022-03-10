@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "ficheros_basico.h"
-#include "bloques.c"
+
+
+#include <time.h>
 /* Fichero: leer_sf.c:
 * --------------------s
 * La ejecución de este fichero permite mostrar el contenido del superbloque.
