@@ -82,13 +82,14 @@ int initMB(){
        }   
     }
 
-    //Ponemos a 1 en el MB los bits que corresponden a los bloques que ocupa el
+    /*/Ponemos a 1 en el MB los bits que corresponden a los bloques que ocupa el
     //superbloque, el propio MB, y el array de inodos.
     for (unsigned int i = posSB; i < SB.posPrimerBloqueDatos; i++)
     {
         //Podriamos reservar todos los bloques de los metadatos:
         reservar_bloque();
     }
+    */
 
     return EXIT_SUCCESS;
 
@@ -140,6 +141,7 @@ int initAI(){
                 break;
             }
         }
+                           
 
         //Escribimos el bloque de inodos en el dispositivo virtual
         if (bwrite(i, &arrinodos) == -1){
