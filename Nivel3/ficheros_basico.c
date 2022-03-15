@@ -81,6 +81,11 @@ int initMB(){
     for (unsigned int i = posSB; i < SB.posPrimerBloqueDatos; i++){
         reservar_bloque();
     }
+    //Restamos el tamaño de los metadatos a la cantidad de bloques libres
+    SB.cantBloquesLibres -= 1 + tamAI(SB.totInodos) + tamMB(SB.totBloques);
+    if(bwrite(posSB,&SB)==-1){
+        return -1;
+    }
 
     return EXIT_SUCCESS;
 
@@ -278,6 +283,7 @@ lo ocupa  y devuelve su posición
     if (escribir_bit(nbloque, 1) == -1){
         return -1;
     }
+    SB.cantBloquesLibres--;
 
     // Rellenar el bufffer con 0's
     if (memset(bufferAux, 0, BLOCKSIZE) == NULL){

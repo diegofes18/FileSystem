@@ -1,6 +1,6 @@
-//#include <stdlib.h>
+#include <stdlib.h>
 #include "ficheros_basico.h"
-//#include "bloques.c"
+#include <time.h>
 /* Fichero: leer_sf.c:
 * --------------------s
 * La ejecución de este fichero permite mostrar el contenido del superbloque.
@@ -143,11 +143,7 @@ int main(int argc, char const *argv[])
     printf("Número de bloques ocupados: %i\n", inodo.numBloquesOcupados);
 
 
-    // Desmonta el disco del sistema.
-    if (bumount() == EXIT_FAILURE)
-    {
-        fprintf(stderr, "Error al desmontar el dispositivo virtual.\n");
-        return EXIT_FAILURE;
-    }
+       // Desmonta el disco del sistema.
+       bumount();
        return EXIT_SUCCESS;
 }
