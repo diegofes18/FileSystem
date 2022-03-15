@@ -1,7 +1,7 @@
 
 #include "ficheros_basico.h"
 
-
+#define DEBUG3 1
 
 int initSB(unsigned int nbloques, unsigned int ninodos){
     struct superbloque SB; //Definimos la zona de memoria (variable de tipo superbloque)
@@ -76,7 +76,16 @@ int initMB(){
        }   
     }
 
+    //Ponemos a 1 en el MB los bits que corresponden a los bloques que ocupa el
+    //superbloque, el propio MB, y el array de inodos.
+    for (unsigned int i = posSB; i < SB.posPrimerBloqueDatos; i++){
+        reservar_bloque();
+    }
+
+    return EXIT_SUCCESS;
+
 }
+
 //Inicializamos el array de inodos
 int initAI(){
 
@@ -93,9 +102,11 @@ int initAI(){
     if(bread(posSB,&SB)==-1){
         return -1;
     }
+
+    int fin = 0;
     int contador=SB.posPrimerInodoLibre+1;
     // Iteramos en todos los bloques del array de inodos.
-    for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
+    for (int i = SB.posPrimerBloqueAI; (i <= SB.posUltimoBloqueAI)&&(fin==0); i++)
     {
         // Iteramos en cada estructura de inodos.
         for (int j = 0; j < (BLOCKSIZE / INODOSIZE); j++)
@@ -110,12 +121,14 @@ int initAI(){
             else
             {
                 arrinodos[j].punterosDirectos[0] = UINT_MAX;
+                fin=1;
+                break;
             }
         }
-    //Escribimos el bloque de inodos en el dispositivo virtual
-        if (bwrite(i, &arrinodos) == -1)
-        {
-            return EXIT_FAILURE;
+
+        //Escribimos el bloque de inodos en el dispositivo virtual
+        if (bwrite(i, &arrinodos) == -1){
+            return -1;
         }
     }
     return EXIT_SUCCESS;
@@ -183,8 +196,9 @@ char leer_bit(unsigned int nbloque){
     unsigned int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB; //Posición absoluta del dispositivo virtual donde leer el bit
 
     unsigned char bufferMB[BLOCKSIZE];
+
     //Leemos el bloque donde esta el bit 
-    if(bread(nbloqueabs,bufferMB)== EXIT_FAILURE){
+    if(bread(nbloqueabs,bufferMB)== -1){
         return -1;
     }
     
@@ -193,6 +207,11 @@ char leer_bit(unsigned int nbloque){
     mascara >>= posbit;          // desplazamiento de bits a la derecha
     mascara &= bufferMB[posbyte]; // operador AND para bits
     mascara >>= (7 - posbit);     // desplazamiento de bits a la derecha))
+
+    #if DEBUG3
+    printf("[leer_bit(%i) → posbyte:%i, posbit:%i, nbloqueMB:%i, nbloqueabs:%i)]\n\n", nbloque, posbyte, posbit, nbloqueMB, nbloqueabs);
+    #endif
+
     return mascara;
  }
  
@@ -277,6 +296,7 @@ lo ocupa  y devuelve su posición
     if (bwrite(posSB, &SB) == -1) {
         return -1;
     }
+     return nbloque;
 }
  
 /*
@@ -315,26 +335,26 @@ int escribir_inodo(unsigned int ninodo, struct inodo inodo){
     }
 
     //Obtenemos el nº de bloque del array de inodos que tiene el inodo solicitado
-    unsigned int bloqueArray=SB.posPrimerBloqueAI+(ninodo/(BLOCKSIZE/INODOSIZE));
+    unsigned int posBloqueInodo = SB.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / INODOSIZE));
 
     //buffer de lectura de array de inodos
     struct inodo inodos[BLOCKSIZE/INODOSIZE];
 
     //Leemos el bloque del array de inodos correspondiente
-    if (bread(bloqueArray, inodos) == -1){
+    if (bread(posBloqueInodo, inodos) == -1){
         return -1;
     }
 
     //Escribimos el inodo en el lugar correspondiente del array
-    inodos[ninodo % (BLOCKSIZE / INODOSIZE)] = inodo;
+    inodo=inodos[ninodo%(BLOCKSIZE/INODOSIZE)];
 
     //Escribimos el bloque modificado en el dispositivo virtual
-    if (bwrite(bloqueArray, inodos) == -1){
+    if (bwrite(posBloqueInodo, inodos) == -1){
         return -1;
     }
 
     //Si todo ha ido bien devolvemos 0
-    return 0;
+    return EXIT_SUCCESS;
     
 }
 
@@ -345,8 +365,8 @@ en una variable de tipo struct inodo pasada por referencia.
  int leer_inodo(unsigned int ninodo, struct inodo *inodo){
      struct superbloque SB;
      //Leemos el superbloque
-    if (bread(0,&SB) == -1) {
-    return -1;
+    if (bread(posSB,&SB) == -1) {
+        return -1;
     }
     //posicion del primer bloque del array de inodo mas lo que ocupa el inodo, divido entre el tamaño del bloque
     unsigned int posInodo = SB.posPrimerBloqueAI + (ninodo * INODOSIZE) / BLOCKSIZE; 

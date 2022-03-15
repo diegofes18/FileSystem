@@ -1,6 +1,7 @@
 
-#include "bloques.h"
-#include "ficheros_basico.c"
+//#include "bloques.h"
+//#include "ficheros_basico.c"
+#include "ficheros_basico.h"
 
 
 char* buf;
@@ -20,7 +21,7 @@ int main(int argc, char **argv){
     int ninodos = nbloques/4;
 
     //iniciamos el buffer
-    char buf[BLOCKSIZE];
+    unsigned char buf[BLOCKSIZE];
     if(!memset(buf, 0, BLOCKSIZE)){
         return -1;
     }

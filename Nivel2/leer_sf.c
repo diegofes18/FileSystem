@@ -1,7 +1,7 @@
-#include <stdlib.h>
+//#include <stdlib.h>
 #include "ficheros_basico.h"
-#include "bloques.c"
-/* Fichero: leer_sf.c:
+//#include "bloques.h"
+/* Fichero: leer_f.c:
 * --------------------s
 * La ejecución de este fichero permite mostrar el contenido del superbloque.
 *  

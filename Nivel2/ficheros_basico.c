@@ -43,9 +43,9 @@ Calcula el tamaño en bloques del array de inodos
 */
 int tamAI(unsigned int ninodos){
     //calculamos espacio
-    int tamAI=ninodos / (BLOCKSIZE / INODOSIZE);
+    int tamAI= (ninodos * INODOSIZE) / BLOCKSIZE;
     
-    if((ninodos*INODOSIZE)%BLOCKSIZE != 0){
+    if(((ninodos*INODOSIZE)%BLOCKSIZE) != 0){
         //si no es exacto añadimos uno mas
         return tamAI+1;
     }
@@ -75,14 +75,28 @@ int initMB(){
     }
 
     //Inizializamos cada bloque del Mapa de bits
-    for(int i =  SB.posPrimerBloqueMB; i<= SB.posUltimoBloqueMB; i++){
+    int tamMB = SB.posUltimoBloqueMB - SB.posPrimerBloqueMB;
+    for(int i =  SB.posPrimerBloqueMB; i <= tamMB + SB.posPrimerBloqueMB; i++){
        if(bwrite(i,buffer)==-1){
            return -1;
        }   
     }
 
+    //Ponemos a 1 en el MB los bits que corresponden a los bloques que ocupa el
+    //superbloque, el propio MB, y el array de inodos.
+    for (unsigned int i = posSB; i < SB.posPrimerBloqueDatos; i++)
+    {
+        //Podriamos reservar todos los bloques de los metadatos:
+        reservar_bloque();
+    }
+
+    return EXIT_SUCCESS;
+
 }
 
+/*
+Inicializa la lista de inodos libres.
+*/
 int initAI(){
 
     unsigned char buffer[BLOCKSIZE];
@@ -103,16 +117,17 @@ int initAI(){
         return -1;
     }
 
+    int fin=0;
     int contador=SB.posPrimerInodoLibre+1;
 
     // Iteramos en todos los bloques del array de inodos.
-    for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
+    for (int i = SB.posPrimerBloqueAI; (i <= SB.posUltimoBloqueAI)&& (fin==0); i++){
 
         // Iteramos en cada estructura de inodos.
         for (int j = 0; j < (BLOCKSIZE / INODOSIZE); j++){
 
             // Iniciliza el contenido del inodo.
-            arrinodos[j].tipo = 'l';
+            arrinodos[j].tipo = '1';
 
             if (contador < SB.totInodos){
 
@@ -121,6 +136,8 @@ int initAI(){
             }else{
                 //Forzar salida al llegar al último nodo
                 arrinodos[j].punterosDirectos[0] = UINT_MAX;
+                fin=1;
+                break;
             }
         }
 
@@ -133,8 +150,6 @@ int initAI(){
     
     return EXIT_SUCCESS;
   
-    
-
 }
 
 

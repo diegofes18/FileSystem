@@ -2,10 +2,11 @@
 #include <limits.h> 
 #include <time.h>
 
+
 #define posSB 0 // el superbloque se escribe en el primer bloque de nuestro FS
 #define tamSB 1
 #define INODOSIZE 128 // tamaño en bytes de un inodo
-#define LIBRE 1 //ponemos el primer inodo libre a 1
+#define LIBRE '1' //ponemos el primer inodo libre a 1
 
 struct superbloque {
    unsigned int posPrimerBloqueMB;                      // Posición del primer bloque del mapa de bits

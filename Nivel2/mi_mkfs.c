@@ -1,6 +1,6 @@
 
-#include "bloques.h"
-#include "ficheros_basico.c"
+//#include "bloques.h"
+#include "ficheros_basico.h"
 
 
 char* buf;
