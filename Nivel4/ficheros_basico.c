@@ -309,8 +309,8 @@ lo ocupa  y devuelve su posición
 Libera un bloque determinado 
 */
 int liberar_bloque(unsigned int nbloque){
-    struct superbloque SB;
     //Leemos el superbloque
+    struct superbloque SB;
     if (bread(posSB, &SB) == -1) {
         return -1;
     }
@@ -334,25 +334,25 @@ Escribe el contenido de una variable de tipo struct inodo
 en un determinado inodo del array de inodos
 */
 int escribir_inodo(unsigned int ninodo, struct inodo inodo){
-
-    //Lectura del superbloque
+    /// Lee el superbloque del disco.
     struct superbloque SB;
-    if (bread(posSB, &SB) == -1){
-        return -1;
+    if (bread(posSB, &SB) == -1)
+    {
+        return EXIT_FAILURE;
     }
 
-    //Buffer de lectura de un array de inodos
+    // Buffer de inodos.
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
 
-    //Lectura del bloque que contiene el inodo
+    //Leemos el bloque que contiene el inodo
     if (bread((SB.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / INODOSIZE))),inodos) == -1){
         return -1;
     }
 
-    //Escribimos el inodo en el lugar correspondiente del array
+    //Modificamos el buffer con el inodo
     inodo=inodos[(ninodo % (BLOCKSIZE / INODOSIZE))];
 
-    //Escribimos el bloque modificado en el dispositivo virtual
+    //Escribimos el buffer en el disco
     if (bwrite((SB.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / INODOSIZE))),inodos) == -1){
         return -1;
     }
@@ -363,17 +363,16 @@ int escribir_inodo(unsigned int ninodo, struct inodo inodo){
 
 /*
 Lee un determinado inodo del array de inodos para volcarlo 
-en una variable de tipo struct inodo pasada por referencia.
+en una variable de tipo struct inodo pasada por referencia
 */
  int leer_inodo(unsigned int ninodo, struct inodo *inodo){
-
-    //Lectura del superbloque
+    //Lectura del superbloque del disco.
     struct superbloque SB;
     if (bread(posSB, &SB) == -1){
         return -1;
     }
 
-    ////Buffer de lectura de un array de inodos
+    //Buffer de inodos
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
 
     //Lectura del bloque que contiene el inodo
@@ -381,7 +380,7 @@ en una variable de tipo struct inodo pasada por referencia.
         return -1;
     }
 
-    // Modifica el buffer con el inodo en el lugar correspondiente.
+    //Modifica el buffer con el inodo 
     *inodo = inodos[(ninodo % (BLOCKSIZE / INODOSIZE))];
 
     return EXIT_SUCCESS;
@@ -390,35 +389,36 @@ en una variable de tipo struct inodo pasada por referencia.
 
 /*
 Encuentra el primer inodo libre , lo reserva, devuelve su número 
-y actualiza la lista enlazada de inodos libres
+y actualiza la lista enlazada de inodos libres.
 */
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
-
-    //Lectura del superbloque
+     // Lee el superbloque del disco.
     struct superbloque SB;
-    if (bread(posSB, &SB) == -1){
+    if (bread(posSB, &SB) == -1)
+    {
         return -1;
     }
 
-    //Comprobamos si hay inodos libres
-    if (!SB.cantInodosLibres){
+    // Comprobar si hay inodos libres.
+    if (!SB.cantInodosLibres)
+    {
         return -1;
     }
 
-    //Obtenemos el primer inodo libre
+    // Obtener el primer inodo libre.
     unsigned int posInodoReservado = SB.posPrimerInodoLibre;
 
-    //Buffer de un inodo
+    // Buffer de un inodo.
     struct inodo inodo;
 
-    //Actualización de la lista enlazada de inodos libres
-    if (leer_inodo(posInodoReservado, &inodo)){
+    // Actualiza la lista enlazada de inodos libres.
+    if (leer_inodo(posInodoReservado, &inodo))
+    {
         return -1;
     }
-
     SB.posPrimerInodoLibre = inodo.punterosDirectos[0];
 
-    //Inicialización de todos los campos del inodo
+    // Inicializa todos los campos del inodo.
     inodo.tipo = tipo;
     inodo.permisos = permisos;
     inodo.nlinks = 1;
@@ -427,31 +427,123 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     inodo.ctime = time(NULL);
     inodo.mtime = time(NULL);
     inodo.numBloquesOcupados = 0;
-
-    for (int i = 0; i < (sizeof(inodo.punterosDirectos) / sizeof(unsigned int));i++){
+    for (int i = 0; i < (sizeof(inodo.punterosDirectos) / sizeof(unsigned int));
+         i++)
+    {
         inodo.punterosDirectos[i] = 0;
     }
-
-    for (int i = 0; i < (sizeof(inodo.punterosIndirectos) /sizeof(unsigned int));i++){
+    for (int i = 0; i < (sizeof(inodo.punterosIndirectos) /
+                         sizeof(unsigned int));
+         i++)
+    {
         inodo.punterosIndirectos[i] = 0;
     }
 
-    //E el inodo en el array de inodos del disco
-    if (escribir_inodo(posInodoReservado, inodo)){
+    // Escribe el inodo en el array de inodos del disco.
+    if (escribir_inodo(posInodoReservado, inodo))
+    {
         return -1;
     }
 
-    //Actalizamos el superbloque y lo escribimos en el disco
+    // Actualizar el superbloque y escribirlo en el disco.
     SB.cantInodosLibres--;
-    if (bwrite(posSB, &SB) == -1){
+    if (bwrite(posSB, &SB) == -1)
+    {
         return -1;
     }
 
     return posInodoReservado;
 
+}    
+
+
+/*
+Se encarga de obtener el rango de punteros en el que se situa el bloque logico que buscamos
+y obti ene la di r eccion almacenada en el puntero del inodo
+*/  
+int obtener_nRangoBL (struct inodo *inodo , unsigned int nblogico, unsigned int *ptr) {
+    if(DIRECTOS>nblogico){
+        *ptr = inodo->punterosDirectos[nblogico];
+        return 0;
+          
+    }else if ( INDIRECTOS0>nblogico){
+        *ptr=inodo->punterosIndirectos[0];
+        return 1;
+          
+    }else if(INDIRECTOS1>nblogico){
+        *ptr=inodo->punterosIndirectos[1];
+        return 2;
+        
+    }else if(INDIRECTOS2>nblogico){
+        *ptr=inodo->punterosIndirectos[2];
+        return 3;
+
+    }else{
+        *ptr=0;
+        perror("Error al obtener el nRangoBL");
+        return -1;
+ 
+    } 
+
+}
+
+/*
+Se encarga de  generalizar la obtencion de los indices de los bloques de punteros
+*/
+int  obtener_indice (unsigned int nblogico, int nivel_punteros){
+    if (nblogico < DIRECTOS) {//ej nblogico=8
+        return nblogico;
+
+    }else if(nblogico < INDIRECTOS0) {//ej nblogico=204
+        return nblogico - DIRECTOS; 
+
+    }else if(nblogico < INDIRECTOS1){//ej nblogico=30.004 
+        if(nivel_punteros == 2){
+            return (nblogico - INDIRECTOS0)/ NPUNTEROS; 
+        } else if (nivel_punteros == 1) {
+            return (nblogico - INDIRECTOS0) % NPUNTEROS; 
+        }
+
+    }else if(nblogico < INDIRECTOS2){//ej nblogico=400.004 
+        if (nivel_punteros == 3){
+            return (nblogico - INDIRECTOS1) / (NPUNTEROS * NPUNTEROS);
+        }else if (nivel_punteros == 2){
+            return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) / NPUNTEROS;
+        }else if (nivel_punteros = 1){
+            return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS;
+        }
+    }
+}
+
+/*
+Se encarga de obtener el numero de bloque fisico correspondiente 
+a un bloque logico determinado del inodo indicado. 
+Enmascara la gestion de los diferentes rangos de punteros directos e indirectos 
+del inodo, de manera que funciones externas  no tienen que preocuparse de como acceder 
+a los bloques fisicos apuntados desde el inodo
+*/
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reservar){
+    //Declaracion de variables
+    struct inodo inodo;
+    unsigned int ptr;
+    int buffer[NPUNTEROS];
+    int ptr_ant,salvar_inodo, rango, nivel_punteros,indice;
+
+    if(leer_inodo(ninodo,&inodo)==-1){
+        perror("Error al traducir el bloque");
+        return -1;
+    }
+
+    salvar_inodo=0;
+    ptr=0;
+    ptr_ant=0;
+    
+    //Obtenemos el rango
+    rango=obtener_nRangoBL(&inodo,nblogico,&ptr);
+    rango=nivel_punteros;
+
+
  }
-
-
 
 
 
