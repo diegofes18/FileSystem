@@ -12,7 +12,7 @@ int main(int argc, char **argv){
     //Mirar la sintaxis
     if(argc != 3){
         perror("Sintaxis incorrecta -> ./mi_fks <nombre del fichero> <numero de bloques>\n");
-        return EXIT_FAILURE;
+        return -1;
     }
     
     //Obtener parametros del comando
@@ -30,44 +30,44 @@ int main(int argc, char **argv){
     //Montamos y comprobamos
     if(bmount(camino)==-1) {
         perror("Error el montar \n");
-        return EXIT_FAILURE;
+        return -1;
     }
 
     //Escribimos en el dispositivo
     for(int i=0; i<nbloques; i++){
-        if(bwrite(i,buf)==EXIT_FAILURE){
+        if(bwrite(i,buf)==-1){
             perror("Error al escribir en el dispostivo virtual");
-            return EXIT_FAILURE;
+            return -1;
         }
     }
 
     //Iniciamos metadatos p
-    if (initSB(nbloques, ninodos) == EXIT_FAILURE){
+    if (initSB(nbloques, ninodos) == -1){
 
         perror("Fallo al iniciar el superbloque del despositivo virtual.\n");
-        return EXIT_FAILURE;
+        return -1;
     }
 
-    if (initMB() == EXIT_FAILURE){
+    if (initMB() == -1){
 
         perror("Fallo al iniciar el mapa de bits del despositivo virtual.\n");
-        return EXIT_FAILURE;
+        return -1;
     }
 
-    if (initAI() == EXIT_FAILURE){
+    if (initAI() == -1){
 
         perror("Fallo al iniciar el array de inodos del despositivo virtual.\n");
-        return EXIT_FAILURE;
+        return -1;
     }
 
     //Creacion de directorio raíz
     reservar_inodo('d', 7);
     
     //Desmontamos el dispostivo virtual
-    if (bumount() == EXIT_FAILURE){
+    if (bumount() == -1){
 
         perror("Error al desmontar\n"); 
-        return EXIT_FAILURE;
+        return -1;
     }
 
     return EXIT_SUCCESS; 

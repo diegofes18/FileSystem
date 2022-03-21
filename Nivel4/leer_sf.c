@@ -142,8 +142,44 @@ int main(int argc, char const *argv[])
     printf("tamaño en bytes lógicos: %i\n", inodo.tamEnBytesLog);
     printf("Número de bloques ocupados: %i\n", inodo.numBloquesOcupados);
 
+    int inodoReservado = reservar_inodo('f',6);
+    bread(posSB, &SB);
 
-       // Desmonta el disco del sistema.
-       bumount();
-       return EXIT_SUCCESS;
+    printf("\nINODO %d - TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n",inodoReservado);
+    traducir_bloque_inodo(inodoReservado,8,1);
+    traducir_bloque_inodo(inodoReservado,204,1);
+    traducir_bloque_inodo(inodoReservado,30004,1);
+    traducir_bloque_inodo(inodoReservado,400004,1);
+    traducir_bloque_inodo(inodoReservado,468750,1);
+
+    printf("\nDATOS DEL INODO RESERVADO: %d\n",inodoReservado);
+    struct tm *ts;
+    char atime[80];
+    char mtime[80];
+    char ctime[80];
+    struct inodo inodo;
+    leer_inodo(inodoReservado, &inodo); //Leemos el Inodo reservado
+    ts = localtime(&inodo.atime);
+    strftime(atime, sizeof(atime), "%a %Y-%m-%d %H:%M:%S", ts);
+    ts = localtime(&inodo.mtime);
+    strftime(mtime, sizeof(mtime), "%a %Y-%m-%d %H:%M:%S", ts);
+    ts = localtime(&inodo.ctime);
+    strftime(ctime, sizeof(ctime), "%a %Y-%m-%d %H:%M:%S", ts);
+    printf("tipo: %c\n", inodo.tipo);
+    printf("permisos: %i\n", inodo.permisos);
+    printf("ATIME: %s \nMTIME: %s \nCTIME: %s\n", atime, mtime, ctime);
+    printf("nlinks: %i\n", inodo.nlinks);
+    printf("tamaño en bytes lógicos: %i\n", inodo.tamEnBytesLog);
+    printf("Número de bloques ocupados: %i\n", inodo.numBloquesOcupados);
+
+    printf("SB.posPrimerInodoLibre = %d\n",SB.posPrimerInodoLibre);
+
+
+    //Liberación
+    if (bumount() == EXIT_FAILURE)
+    {
+        fprintf(stderr, "Error al desmontar el dispositivo virtual.\n");
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }

@@ -525,25 +525,117 @@ a los bloques fisicos apuntados desde el inodo
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reservar){
     //Declaracion de variables
     struct inodo inodo;
-    unsigned int ptr;
+    unsigned int ptr,ptr_ant;
     int buffer[NPUNTEROS];
-    int ptr_ant,salvar_inodo, rango, nivel_punteros,indice;
+    int salvar_inodo, nRangoBL, nivel_punteros,indice;
 
     if(leer_inodo(ninodo,&inodo)==-1){
         perror("Error al traducir el bloque");
         return -1;
     }
 
-    salvar_inodo=0;
     ptr=0;
     ptr_ant=0;
+    salvar_inodo=0;
     
     //Obtenemos el rango
-    rango=obtener_nRangoBL(&inodo,nblogico,&ptr);
-    rango=nivel_punteros;
+    nRangoBL=obtener_nRangoBL(&inodo,nblogico,&ptr);//0:D, 1:I0, 2:I1, 3:I2
+    nivel_punteros=nRangoBL;//el nivel_punteros +alto es el que cuelga del inodo
+
+    //miramos todos los niveles 
+    while(nivel_punteros>0){
+    
+        if(ptr==0){
+
+            if(reservar==0){
+                //si no hay punteros avisamos del error
+                perror("Error en obtener_nRangoBL");
+                return -1;
+
+            }else{
+            //reservamos los bloques de los punteros y creamos enlaces
+            //desde inodo hasta datos
+            salvar_inodo=1;
+            ptr=reservar_bloque; //de punteros
+            inodo.numBloquesOcupados++;
+            inodo.ctime=time(NULL); //fecha actual
+
+            if(nivel_punteros==nRangoBL){
+                //el bloque cuelga directamente del inodo
+                inodo.punterosIndirectos[nRangoBL - 1] = ptr;
+
+            }else{//el bloque cuelga de otro bloque de punteros
+
+                buffer[indice] = ptr;// (imprimirlo para test)
+
+                ////salvamos en el dispositivo el buffer de punteros modificado
+                if (bwrite(ptr_ant, buffer) == -1){
+                        perror ("Error al obtener_nRangoBL");
+                        return -1;
+                    }
+                }
+
+            }
+
+            //ponemos a 0 todos los punteros del buffer
+            if(memset(buffer, 0, BLOCKSIZE)==NULL){
+                return -1;
+            }
+
+            }else{
+                if (bread(ptr, buffer) == -1){
+                perror("Error al obtener_nRangoBL");
+                return -1;
+            }
+            }
+
+            indice = obtener_indice(nblogico, nivel_punteros);
+            ptr_ant = ptr;        //guardamos el puntero
+            ptr = buffer[indice]; // y lo desplazamos al siguiente nivel
+            nivel_punteros--;
+            }
+
+            //nos encontramos en el nivel de datos
+            if(ptr==0){
+                //no existe bloque de datos
+                if(reservar==0){
+                    //error lectura ∄ bloque
+                    return -1;
+
+                }else{
+                    salvar_inodo = 1;
+                    ptr = reservar_bloque(); //de datos
+                    inodo.numBloquesOcupados++;
+                    inodo.ctime = time(NULL);
+
+                    if(nRangoBL==0){
+                        inodo.punterosDirectos[nblogico]=ptr;// (imprimirlo para test)
+
+                    }else{
+                        buffer[indice] = ptr; // (imprimirlo para test)
+
+                        if (bwrite(ptr_ant, buffer) == -1){
+                            perror("Error en obtener_nRangoBL");
+                            return -1;
+                            }
+                    }
+                }
+            }
+
+            if (salvar_inodo == 1){
+                if (escribir_inodo(ninodo, inodo) == -1){
+                    perror("Error en salvar inodo");
+                    return -1;
+        }
+    }
+
+            return ptr; //nbfisico del bloque de datos
+
+    }
+    
 
 
- }
+ 
 
 
 
