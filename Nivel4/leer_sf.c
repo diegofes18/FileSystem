@@ -10,49 +10,56 @@
 *
 * return: devuelve Exit_Success o Exit_Failure si ha habido un error.
 */
+
+#define DEBUG1 0 //Debugger del nivel 1
+#define DEBUG2 0 //Debugger del nivel 2
+#define DEBUG3 0 //Debugger del nivel 3
+#define DEBUG4 1 //Debugger del nivel 4
+
+//La ejecución de leer_sf.c permite mostrar el contenido del superbloque.
 int main(int argc, char const *argv[])
 {
-       // Comprueba que la sintaxis sea correcta.
-       if (argc != 2)
-       {
-              fprintf(stderr,
-                      "Error de sintaxis: ./leer_sf <nombre_dispositivo>\n");
-              return EXIT_FAILURE;
-       }
+    //Comprobación de sintaxis correcta
+    if (argc != 2)
+    {
+        fprintf(stderr, "Error sintaxis: ./leer_sf <nombre_dispositivo>\n");
+        return EXIT_FAILURE;
+    }
 
-       // Monta el disco en el sistema.
-       if (bmount(argv[1]) == -1)
-       {
-              fprintf(stderr, "Error de montaje de disco.\n");
-              return EXIT_FAILURE;
-       }
+    //Montaje del disco
+    if (bmount(argv[1]) == EXIT_FAILURE)
+    {
+        fprintf(stderr, "Error al montar el dispositivo virtual.\n");
+        return EXIT_FAILURE;
+    }
 
-       // Lee el superbloque del disco.
-       struct superbloque SB;
-       if (bread(0, &SB) == -1)
-       {
-              fprintf(stderr, "Error de lectura del superbloque.\n");
-              return EXIT_FAILURE;
-       }
+    //Leectura del superbloque del disco
+    struct superbloque SB;
+    if (bread(0, &SB) == EXIT_FAILURE)
+    {
+        fprintf(stderr, "Error de lectura del superbloque.\n");
+        return EXIT_FAILURE;
+    }
 
-       // Muestra por consola el contenido del superbloque.
-       printf("DATOS DEL SUPERBLOQUE\n");
-       printf("posPrimerBloqueMB = %d\n", SB.posPrimerBloqueMB);
-       printf("posUltimoBloqueMB = %d\n", SB.posUltimoBloqueMB);
-       printf("posPrimerBloqueAI = %d\n", SB.posPrimerBloqueAI);
-       printf("posUltimoBloqueAI = %d\n", SB.posUltimoBloqueAI);
-       printf("posPrimerBloqueDatos = %d\n", SB.posPrimerBloqueDatos);
-       printf("posUltimoBloqueDatos = %d\n", SB.posUltimoBloqueDatos);
-       printf("posInodoRaiz = %d\n", SB.posInodoRaiz);
-       printf("posPrimerInodoLibre = %d\n", SB.posPrimerInodoLibre);
-       printf("cantBloquesLibres = %d\n", SB.cantBloquesLibres);
-       printf("cantInodosLibres = %d\n", SB.cantInodosLibres);
-       printf("totBloques = %d\n", SB.totBloques);
-       printf("totInodos = %d\n", SB.totInodos);
+    //Contenido del superbloque.
+    printf("DATOS DEL SUPERBLOQUE\n");
+    printf("posPrimerBloqueMB = %d\n", SB.posPrimerBloqueMB);
+    printf("posUltimoBloqueMB = %d\n", SB.posUltimoBloqueMB);
+    printf("posPrimerBloqueAI = %d\n", SB.posPrimerBloqueAI);
+    printf("posUltimoBloqueAI = %d\n", SB.posUltimoBloqueAI);
+    printf("posPrimerBloqueDatos = %d\n", SB.posPrimerBloqueDatos);
+    printf("posUltimoBloqueDatos = %d\n", SB.posUltimoBloqueDatos);
+    printf("posInodoRaiz = %d\n", SB.posInodoRaiz);
+    printf("posPrimerInodoLibre = %d\n", SB.posPrimerInodoLibre);
+    printf("cantBloquesLibres = %d\n", SB.cantBloquesLibres);
+    printf("cantInodosLibres = %d\n", SB.cantInodosLibres);
+    printf("totBloques = %d\n", SB.totBloques);
+    printf("totInodos = %d\n", SB.totInodos);
 
-        printf("\nsizeof struct superbloque: %ld\n", sizeof(struct superbloque));
+    printf("\nsizeof struct superbloque: %ld\n", sizeof(struct superbloque));
     printf("sizeof struct inodo:  %ld\n", sizeof(struct inodo));
 
+#if DEBUG2
     printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
     //Podéis hacer también un recorrido de la lista de inodos libres (mostrando para cada inodo el campo punterosDirectos[0]).
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
@@ -92,9 +99,14 @@ int main(int argc, char const *argv[])
             contlibres++;
         }
     }
-     //Probación el tamaño del tipo time_t para vuestra plataforma/compilador:
-    //printf("\nsizeof time_t is: %ld\n", sizeof(time_t));
+#endif
 
+#if DEBUG1
+    //Probación el tamaño del tipo time_t para vuestra plataforma/compilador:
+    printf("\nsizeof time_t is: %ld\n", sizeof(time_t));
+#endif
+
+#if DEBUG3
     printf("\nRESERVAMOS UN BLOQUE Y LUEGO LO LIBERAMOS:\n");
     int reservado = reservar_bloque(); // Actualiza el SB
     bread(posSB, &SB);                 // Actualizar los valores del SB
@@ -120,12 +132,12 @@ int main(int argc, char const *argv[])
     printf("leer_bit(%i) = %i\n", SB.posPrimerBloqueDatos, bit);
     bit = leer_bit(SB.posUltimoBloqueDatos);
     printf("leer_bit(%i) = %i\n", SB.posUltimoBloqueDatos, bit);
+
     printf("\nDATOS DEL DIRECTORIO RAIZ\n\n");
     struct tm *ts;
     char atime[80];
     char mtime[80];
     char ctime[80];
-
     struct inodo inodo;
     int ninodo = 0; //el directorio raiz es el inodo 0
     leer_inodo(ninodo, &inodo);
@@ -140,7 +152,10 @@ int main(int argc, char const *argv[])
     printf("ID: %d \nATIME: %s \nMTIME: %s \nCTIME: %s\n", ninodo, atime, mtime, ctime);
     printf("nlinks: %i\n", inodo.nlinks);
     printf("tamaño en bytes lógicos: %i\n", inodo.tamEnBytesLog);
-    printf("Número de bloques ocupados: %i\n", inodo.numBloquesOcupados);
+    intf("Número de bloques ocupados: %i\n", inodo.numBloquesOcupados);
+#endif
+
+#if DEBUG4
 
     int inodoReservado = reservar_inodo('f',6);
     bread(posSB, &SB);
@@ -153,11 +168,11 @@ int main(int argc, char const *argv[])
     traducir_bloque_inodo(inodoReservado,468750,1);
 
     printf("\nDATOS DEL INODO RESERVADO: %d\n",inodoReservado);
-    //struct tm *ts;
-    //char atime[80];
-    //char mtime[80];
-    //char ctime[80];
-    //struct inodo inodo;
+    struct tm *ts;
+    char atime[80];
+    char mtime[80];
+    char ctime[80];
+    struct inodo inodo;
     leer_inodo(inodoReservado, &inodo); //Leemos el Inodo reservado
     ts = localtime(&inodo.atime);
     strftime(atime, sizeof(atime), "%a %Y-%m-%d %H:%M:%S", ts);
@@ -174,6 +189,7 @@ int main(int argc, char const *argv[])
 
     printf("SB.posPrimerInodoLibre = %d\n",SB.posPrimerInodoLibre);
 
+#endif
 
     //Liberación
     if (bumount() == EXIT_FAILURE)
