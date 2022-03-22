@@ -1,6 +1,6 @@
-#include <stdlib.h>
+//#include <stdlib.h>
 #include "ficheros_basico.h"
-#include <time.h>
+//#include <time.h>
 /* Fichero: leer_sf.c:
 * --------------------s
 * La ejecución de este fichero permite mostrar el contenido del superbloque.
@@ -144,6 +144,9 @@ int main(int argc, char const *argv[])
 
 
        // Desmonta el disco del sistema.
-       bumount();
+       if(bumount()==-1){
+           perror("Error al desmontar");
+           return -1;
+       }
        return EXIT_SUCCESS;
 }

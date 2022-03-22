@@ -153,11 +153,11 @@ int main(int argc, char const *argv[])
     traducir_bloque_inodo(inodoReservado,468750,1);
 
     printf("\nDATOS DEL INODO RESERVADO: %d\n",inodoReservado);
-    struct tm *ts;
-    char atime[80];
-    char mtime[80];
-    char ctime[80];
-    struct inodo inodo;
+    //struct tm *ts;
+    //char atime[80];
+    //char mtime[80];
+    //char ctime[80];
+    //struct inodo inodo;
     leer_inodo(inodoReservado, &inodo); //Leemos el Inodo reservado
     ts = localtime(&inodo.atime);
     strftime(atime, sizeof(atime), "%a %Y-%m-%d %H:%M:%S", ts);
