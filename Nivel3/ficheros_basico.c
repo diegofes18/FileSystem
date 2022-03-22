@@ -58,84 +58,106 @@ Inicializa el mapa de bits
 */
 int initMB(){
 
-    unsigned char buffer[BLOCKSIZE];
-
-    if(memset(buffer, 0, BLOCKSIZE)==NULL){
-        return -1;
-    }
-    
+    // Lee el superbloque del disco.
     struct superbloque SB;
-
-    if(bread(posSB,&SB)==-1){
-        return -1;
+    if (bread(posSB, &SB) == -1)
+    {
+        return EXIT_FAILURE;
     }
 
-    for(int i =  SB.posPrimerBloqueMB; i<= SB.posUltimoBloqueMB; i++){
-       if(bwrite(i,buffer)==-1){
-           return -1;
-       }   
+    // Reserva un espacio de memoria para el buffer de tamaño bloque.
+    unsigned char *buffer = malloc(sizeof(char) * BLOCKSIZE);
+    if (!buffer)
+    {
+        return EXIT_FAILURE;
     }
 
-    //Ponemos a 1 en el MB los bits que corresponden a los bloques que ocupa el
-    //superbloque, el propio MB, y el array de inodos.
-    for (unsigned int i = posSB; i < SB.posPrimerBloqueDatos; i++){
-        reservar_bloque();
+    // Pone todas las posiciones del buffer a cero.
+    memset(buffer, 0, BLOCKSIZE);
+
+    // Itera tantas veces como bloques haya en el mapa de bits del disco.
+    for (int ind = SB.posPrimerBloqueMB; ind <= SB.posUltimoBloqueMB; ind++)
+    {
+        // Escribe el buffer en disco dejando el bloque a cero.
+        if (bwrite(ind, buffer) == -1)
+        {
+            free(buffer);
+            return EXIT_FAILURE;
+        }
     }
-    //Restamos el tamaño de los metadatos a la cantidad de bloques libres
-    SB.cantBloquesLibres -= 1 + tamAI(SB.totInodos) + tamMB(SB.totBloques);
-    if(bwrite(posSB,&SB)==-1){
-        return -1;
+
+    // Libera el buffer.
+    free(buffer);
+
+    // Marca como ocupado los bloques de metadatos indicados en el superbloque.
+    for (unsigned int i = posSB; i <= SB.posUltimoBloqueAI; i++)
+    {
+        if (escribir_bit(i, 1))
+        {
+            return EXIT_FAILURE;
+        }
+    }
+
+    // Actualiza la cantidad de bloques libres en el superbloque.
+    SB.cantBloquesLibres = SB.cantBloquesLibres - ((SB.posUltimoBloqueMB + 1) -
+                                                   SB.posPrimerBloqueMB);
+    if (bwrite(posSB, &SB) == -1)
+    {
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
-
 }
 
 //Inicializamos el array de inodos
-int initAI(){
-
-    unsigned char buffer[BLOCKSIZE];
-
-    if(memset(buffer, 0, BLOCKSIZE)==NULL){
-        return -1;
-    }
-
-    struct inodo arrinodos[BLOCKSIZE/INODOSIZE];
-    
+int initAI()
+{
+    // Lee el superbloque.
     struct superbloque SB;
-
-    if(bread(posSB,&SB)==-1){
-        return -1;
+    if (bread(posSB, &SB) == -1)
+    {
+        return EXIT_FAILURE;
     }
 
-    int fin = 0;
-    int contador=SB.posPrimerInodoLibre+1;
-    // Iteramos en todos los bloques del array de inodos.
-    for (int i = SB.posPrimerBloqueAI; (i <= SB.posUltimoBloqueAI)&&(fin==0); i++)
+    // Inicializa estructura de inodos.
+    struct inodo inodos[BLOCKSIZE / INODOSIZE];
+    int continodos = SB.posPrimerInodoLibre + 1;
+
+    // Itera dentro de todos los bloques del array de inodos.
+    for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
     {
-        // Iteramos en cada estructura de inodos.
-        for (int j = 0; j < (BLOCKSIZE / INODOSIZE); j++)
+        // Itera dentro de cada estructura de inodos.
+        for (int j = 0; j < BLOCKSIZE / INODOSIZE; j++)
         {
-        // Iniciliza el contenido del inodo.
-            arrinodos[j].tipo = 'l';
-            if (contador < SB.totInodos)
+            // Iniciliza el contenido del inodo.
+            inodos[j].tipo = 'l';
+            if (continodos < SB.totInodos)
             {
-                arrinodos[j].punterosDirectos[0] = contador;
-                contador++;
+                inodos[j].punterosDirectos[0] = continodos;
+                continodos++;
             }
             else
             {
-                arrinodos[j].punterosDirectos[0] = UINT_MAX;
-                fin=1;
-                break;
+                inodos[j].punterosDirectos[0] = UINT_MAX;
             }
         }
 
-        //Escribimos el bloque de inodos en el dispositivo virtual
-        if (bwrite(i, &arrinodos) == -1){
-            return -1;
+        // Escribe el inodo en el dispositivo.
+        if (bwrite(i, &inodos) == -1)
+        {
+            return EXIT_FAILURE;
         }
     }
+
+    // Actualiza la cantidad de bloques libres en el superbloque.
+    SB.cantBloquesLibres = SB.cantBloquesLibres - ((SB.posUltimoBloqueAI + 1) -
+                                                   SB.posPrimerBloqueAI);
+    // Escribe el superbloque en el dispositivo.
+    if (bwrite(posSB, &SB) == -1)
+    {
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }
 
@@ -249,7 +271,7 @@ lo ocupa  y devuelve su posición
 
     //Localizamos qué byte dentro de ese bloque tiene algún 0
     while(libre==0){
-        if (bread(posBloqueMB, bufferMB) == -1) {
+        if (bread(posBloqueMB, bufferMB) == EXIT_FAILURE) {
             perror("Error al reservar_bloque()\n");
             return -1;
         }
@@ -277,7 +299,7 @@ lo ocupa  y devuelve su posición
     }
 
     //Determinar cuál es finalmente el nº de bloque físico que podemos reservar
-    unsigned int nbloque = ((posBloqueMB - SB.posPrimerBloqueMB) * BLOCKSIZE + posbyte) * 8 + posbit;
+    int nbloque = ((posBloqueMB - SB.posPrimerBloqueMB) * BLOCKSIZE + posbyte) * 8 + posbit;
 
     //Indicamos que el bloque está reservado
     if (escribir_bit(nbloque, 1) == -1){
@@ -315,15 +337,8 @@ int liberar_bloque(unsigned int nbloque){
         return -1;
     }
 
-    // Revisa que el bloque este ocupado.
-    if (!leer_bit(nbloque)){
-        return -1;
-    }
-
     //Ponemos a 0 el bit del MB correspondiente al bloque nbloque
-    if(escribir_bit(nbloque,0)){
-        return -1;
-    }
+    escribir_bit(nbloque,0);
 
     //Incrementamos la cantidad de bloques libres en el superbloque
     SB.cantBloquesLibres++;
@@ -356,8 +371,8 @@ int escribir_inodo(unsigned int ninodo, struct inodo inodo){
         return -1;
     }
 
-    //Escribimos el inodo en el lugar correspondiente del array
-    inodo=inodos[(ninodo % (BLOCKSIZE / INODOSIZE))];
+    // Modifica el buffer con el inodo en el lugar correspondiente.
+    inodos[(ninodo % (BLOCKSIZE / INODOSIZE))] = inodo;
 
     //Escribimos el bloque modificado en el dispositivo virtual
     if (bwrite((SB.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / INODOSIZE))),inodos) == -1){
@@ -401,30 +416,31 @@ y actualiza la lista enlazada de inodos libres
 */
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
 
-    // Lee el superbloque del disco.
+    //Lectura del superbloque
     struct superbloque SB;
     if (bread(posSB, &SB) == -1){
         return -1;
     }
 
-    // Comprobar si hay inodos libres.
+    //Comprobamos si hay inodos libres
     if (!SB.cantInodosLibres){
         return -1;
     }
 
-    // Obtener el primer inodo libre.
+    //Obtenemos el primer inodo libre
     unsigned int posInodoReservado = SB.posPrimerInodoLibre;
 
-    // Buffer de un inodo.
+    //Buffer de un inodo
     struct inodo inodo;
 
-    // Actualiza la lista enlazada de inodos libres.
+    //Actualización de la lista enlazada de inodos libres
     if (leer_inodo(posInodoReservado, &inodo)){
         return -1;
     }
+
     SB.posPrimerInodoLibre = inodo.punterosDirectos[0];
 
-    // Inicializa todos los campos del inodo.
+    //Inicialización de todos los campos del inodo
     inodo.tipo = tipo;
     inodo.permisos = permisos;
     inodo.nlinks = 1;
@@ -433,6 +449,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     inodo.ctime = time(NULL);
     inodo.mtime = time(NULL);
     inodo.numBloquesOcupados = 0;
+
     for (int i = 0; i < (sizeof(inodo.punterosDirectos) / sizeof(unsigned int));i++){
         inodo.punterosDirectos[i] = 0;
     }
@@ -441,12 +458,12 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
         inodo.punterosIndirectos[i] = 0;
     }
 
-    // Escribe el inodo en el array de inodos del disco.
+    //E el inodo en el array de inodos del disco
     if (escribir_inodo(posInodoReservado, inodo)){
         return -1;
     }
 
-    // Actualizar el superbloque y escribirlo en el disco.
+    //Actalizamos el superbloque y lo escribimos en el disco
     SB.cantInodosLibres--;
     if (bwrite(posSB, &SB) == -1){
         return -1;
