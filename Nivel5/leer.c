@@ -31,46 +31,17 @@ int main(int argc, char **argv) {
     bytes_leidos += valor;
     write(1, buffer, valor);
     offset += tbuffer;
+    //Limpiamos para quitar basura del buffer
     memset(buffer, 0, tbuffer);
   }
-
-}
-
-  //printf("Leyendo archivo\n");
-  while ((valor = mi_read_f(ninodo, buffer, offset, tam_lectura)) > 0) {
-    B_leidos += valor;
-    write(1, buffer, valor);
-    offset += tam_lectura;
-    memset(buffer, 0, tam_lectura);
-  }
-  fprintf(stderr ,"\nBytes leídos: %d\n", B_leidos);
+  //Mostramos los bytes leidos
+  fprintf(stderr ,"\nBytes leídos: %d\n", bytes_leidos);
+  //Cargamos el Inodo en el stat
   mi_stat_f(ninodo, &stat);
-  fprintf(stderr ,"Tamaño en bytes lógicos: %d\n", stat.tamEnBytesLog);
-
+  //Mostramos el tamaño en bytes lógicos del stat
+  fprintf(stderr, "Tamaño en bytes lógicos: %d\n", stat.tamEnBytesLog);
+  //Desmontamos disco
   if (bumount() == -1) {
-    fprintf(stderr, "Error en leer.c --> %d: %s\n", errno, strerror(errno));
+    perror("Error en leer.c --> bumount()\n");
+  }
 }
-
-    //Hacemos una lectura del Inodo indicado por parametro
-    valor = mi_read_f(ninodo, buffer, offset, tambuffer);
-    //Mientras hay valores y hay permisos para realizar una lectura 
-    while (valor > 0)
-    {
-        //Evitamos basura
-        write(1, buffer, valor);
-        //Acumulamos el número de bytes leídos
-        nbytes += valor;
-        offset += tambuffer;
-        //Limpiamos para quitar basura del buffer
-        memset(buffer, 0, tambuffer);
-
-    }
-
-    //Mostramos por pantalla los bytes leidos
-    fprintf(stderr, "\nBytes leídos: %d\n", nbytes);
-    //Cargamos el Inodo en el stat
-    mi_stat_f(ninodo, &stat);
-    //Mostramos el tamaño en bytes lógicos del stat
-    fprintf(stderr, "Tamaño en bytes lógicos: %d\n", stat.tamEnBytesLog);
-    //Desmontamos disco
-    bumount();
