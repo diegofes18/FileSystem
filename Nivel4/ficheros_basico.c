@@ -1,7 +1,7 @@
 
 #include "ficheros_basico.h"
 
-#define DEBUG3 1
+#define DEBUG3 0
 
 int initSB(unsigned int nbloques, unsigned int ninodos){
     struct superbloque SB; //Definimos la zona de memoria (variable de tipo superbloque)
@@ -309,7 +309,7 @@ lo ocupa  y devuelve su posición
 
     // Rellenar el bufffer con 0's
     if (memset(bufferAux, 0, BLOCKSIZE) == NULL){
-        perror("Error while memset in reservar_bloque()\n");
+        perror("Error while memset en reservar_bloque()\n");
         return -1;
     }
 
@@ -467,19 +467,11 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     SB.cantInodosLibres--;
     if (bwrite(posSB, &SB) == -1){
         return -1;
-    }
+}
 
     return posInodoReservado;
 
- }
-
-
-
-
-
-
-  
-
+}
 
 /*
 Se encarga de obtener el rango de punteros en el que se situa el bloque logico que buscamos
@@ -588,10 +580,17 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
             if(nivel_punteros==nRangoBL){
                 //el bloque cuelga directamente del inodo
                 inodo.punterosIndirectos[nRangoBL - 1] = ptr;
+                
+                printf("[traducir_bloque_inodo()→ inodo.punterosIndirectos[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
+                           nRangoBL - 1, ptr, ptr, nivel_punteros);
+
 
             }else{//el bloque cuelga de otro bloque de punteros
 
                 buffer[indice] = ptr;// (imprimirlo para test)
+
+                printf("[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
+                           nivel_punteros, indice, ptr, ptr, nivel_punteros);
 
                 ////salvamos en el dispositivo el buffer de punteros modificado
                 if (bwrite(ptr_ant, buffer) == -1){
@@ -636,8 +635,14 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
                     if(nRangoBL==0){
                         inodo.punterosDirectos[nblogico]=ptr;// (imprimirlo para test)
 
+                        printf("[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n",
+                        nblogico, ptr, ptr, nblogico);
+
                     }else{
                         buffer[indice] = ptr; // (imprimirlo para test)
+
+                        printf("[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n",
+                        indice, ptr, ptr, nblogico);
 
                         if (bwrite(ptr_ant, buffer) == -1){
                             perror("Error en obtener_nRangoBL");
