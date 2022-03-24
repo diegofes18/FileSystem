@@ -2,7 +2,6 @@
 #include "ficheros_basico.h"
 
 #define DEBUG3 0
-#define DEBUG4 1
 
 int initSB(unsigned int nbloques, unsigned int ninodos){
     struct superbloque SB; //Definimos la zona de memoria (variable de tipo superbloque)
@@ -582,19 +581,16 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
                 //el bloque cuelga directamente del inodo
                 inodo.punterosIndirectos[nRangoBL - 1] = ptr;
                 
-                #if DEBUG4
                 printf("[traducir_bloque_inodo()→ inodo.punterosIndirectos[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
                            nRangoBL - 1, ptr, ptr, nivel_punteros);
-                #endif
+
 
             }else{//el bloque cuelga de otro bloque de punteros
 
                 buffer[indice] = ptr;// (imprimirlo para test)
 
-                #if DEBUG4
                 printf("[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n",
                            nivel_punteros, indice, ptr, ptr, nivel_punteros);
-                #endif
 
                 ////salvamos en el dispositivo el buffer de punteros modificado
                 if (bwrite(ptr_ant, buffer) == -1){
@@ -627,7 +623,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
             if(ptr==0){
                 //no existe bloque de datos
                 if(reservar==0){
-                    //error lectura, no existe bloque
+                    //error lectura ∄ bloque
                     return -1;
 
                 }else{
@@ -639,18 +635,14 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
                     if(nRangoBL==0){
                         inodo.punterosDirectos[nblogico]=ptr;// (imprimirlo para test)
 
-                        #if DEBUG4
                         printf("[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n",
                         nblogico, ptr, ptr, nblogico);
-                        #endif
 
                     }else{
                         buffer[indice] = ptr; // (imprimirlo para test)
 
-                        #if DEBUG4
                         printf("[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n",
                         indice, ptr, ptr, nblogico);
-                        #endif
 
                         if (bwrite(ptr_ant, buffer) == -1){
                             perror("Error en obtener_nRangoBL");
