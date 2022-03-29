@@ -511,7 +511,7 @@ int  obtener_indice (unsigned int nblogico, int nivel_punteros){
         return nblogico;
 
     }else if(nblogico < INDIRECTOS0) {//ej nblogico=204
-        return nblogico - DIRECTOS; 
+        return (nblogico - DIRECTOS); 
 
     }else if(nblogico < INDIRECTOS1){//ej nblogico=30.004 
         if(nivel_punteros == 2){
@@ -529,7 +529,7 @@ int  obtener_indice (unsigned int nblogico, int nivel_punteros){
             return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS;
         }
     }
-    return EXIT_FAILURE;
+    return -1;
 }
 
 /*
@@ -542,9 +542,9 @@ a los bloques fisicos apuntados desde el inodo
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reservar){
     //Declaracion de variables
     struct inodo inodo;
-    unsigned int ptr,ptr_ant;
+    unsigned int ptr;
     int buffer[NPUNTEROS];
-    int salvar_inodo, nRangoBL, nivel_punteros,indice;
+    int salvar_inodo, nRangoBL, nivel_punteros,indice,ptr_ant;
 
     if(leer_inodo(ninodo,&inodo)==-1){
         perror("Error al traducir el bloque");
@@ -566,7 +566,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
 
             if(reservar==0){
                 //si no hay punteros avisamos del error
-                perror("Error en obtener_nRangoBL");
+                //perror("Error en obtener_nRangoBL");
                 return -1;
 
             }else{
@@ -600,17 +600,11 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
                 }
 
             }
+        }
 
-            //ponemos a 0 todos los punteros del buffer
-            if(memset(buffer, 0, BLOCKSIZE)==NULL){
+            if (bread(ptr, buffer) == -1){
+                perror("Error in obtener_nRangoBL: bread(ptr, buffer)\n");
                 return -1;
-            }
-
-            }else{
-                if (bread(ptr, buffer) == -1){
-                perror("Error al obtener_nRangoBL");
-                return -1;
-            }
             }
 
             indice = obtener_indice(nblogico, nivel_punteros);

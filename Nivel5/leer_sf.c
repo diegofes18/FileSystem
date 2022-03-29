@@ -14,7 +14,7 @@
 #define DEBUG1 0 //Debugger del nivel 1
 #define DEBUG2 0 //Debugger del nivel 2
 #define DEBUG3 0 //Debugger del nivel 3
-#define DEBUG4 1 //Debugger del nivel 4
+#define DEBUG4 0 //Debugger del nivel 4
 
 //La ejecución de leer_sf.c permite mostrar el contenido del superbloque.
 int main(int argc, char const *argv[])

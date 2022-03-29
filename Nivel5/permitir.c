@@ -4,7 +4,7 @@ int main(int argc, char **argv) {
 	//Modificamos los permisos del Inodo con la llamada a mi_chmod_f()
 	int ninodo = atoi(argv[2]);
 	int permisos = atoi(argv[3]);
-	
+
     //Validamos que la sintaxis sea correcta
     if (argc != 4) {
 		perror("ERROR SINTAXIS: permitir <nombre_dispositivo> <ninodo> <permisos>\n");
@@ -17,9 +17,7 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	
-
-	if (mi_chmod_f(ninodo, permisos) == -1) {
+	if (mi_chmod_f(ninodo, permisos)) {
 		perror("Error en permitir.c --> mi_chmod_f()\n");
 		return -1;
 	}

@@ -27,6 +27,7 @@ int main(int argc, char *argv[]) {
     int ninodo=reservar_inodo('f',6);
     if(ninodo==-1){
         perror("Error en reservar_inodo");
+        return -1;
     }
 
     //mostramos por pantalla los ninodos
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
           return -1;
         }
 
-        printf("Bytes escritos: %d\n\n", BytesE);
+        printf("Bytes escritos: %d\n", BytesE);
 
         //usamos strlen para calcular la longitud del texto
         int length = strlen(argv[2]);
@@ -54,10 +55,6 @@ int main(int argc, char *argv[]) {
 
         //Comprobamos el funcionamiento de las funciones
         int BytesL = mi_read_f(ninodo, buffer, offsets[i], length);
-        if(BytesL==-1){
-          perror("Error en mi_read_f\n");
-          return -1;
-        }
 
         printf("Bytes leídos: %d\n", BytesL);
 

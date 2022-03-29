@@ -1,4 +1,4 @@
- #include <stdlib.h>
+#include <stdlib.h>
 #include "ficheros.h"
 /**
  * Son programas externos ficticios, sólo para probar, temporalmente, 

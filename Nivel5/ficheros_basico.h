@@ -64,12 +64,12 @@ int initAI();
 int escribir_bit(unsigned int nbloque, unsigned int bit);
 char leer_bit(unsigned int nbloque);
 int reservar_bloque();
-int liberar_bloque();
+int liberar_bloque(unsigned int nbloque);
 int escribir_inodo(unsigned int ninodo, struct inodo inodo);
 int leer_inodo(unsigned int ninodo, struct inodo *inodo);
 int reservar_inodo(unsigned char tipo, unsigned char permisos);
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reservar);
-int  obtener_indice (unsigned int nblogico, int nivel_punteros);
+int obtener_indice (unsigned int nblogico, int nivel_punteros);
 int obtener_nRangoBL (struct inodo *inodo , unsigned int nblogico, unsigned int *ptr);
 
 #define NPUNTEROS (BLOCKSIZE / sizeof(unsigned int)) // 256
