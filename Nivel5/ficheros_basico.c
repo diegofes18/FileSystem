@@ -653,7 +653,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
         }
     }
 
-            return ptr; //nbfisico del bloque de datos
+        return ptr; //nbfisico del bloque de datos
 
     }
     
