@@ -5,7 +5,7 @@ static int descriptor = 0;
 
 /*
 Función que se encarga de montar el dispositivo virtual, 
-devuelve el descriptor o EXIT_FAILURE (si ha ido mal)
+devuelve el descriptor o -1 (si ha ido mal)
 */
 int bmount(const char *camino){
 
@@ -15,7 +15,7 @@ int bmount(const char *camino){
 
     if(descriptor==-1){
 
-        return EXIT_FAILURE;
+        return -1;
     }
     
     return descriptor;
@@ -33,7 +33,7 @@ int bumount(){
     if (close(descriptor)==-1) {
         
         perror("Error en la lectura");
-        return EXIT_FAILURE;
+        return -1;
     }
         
     return EXIT_SUCCESS;
@@ -57,16 +57,16 @@ int bwrite(unsigned int nbloque, const void *buf){
 
         if(b<0){
             perror("Error en la lectura");
-            return EXIT_FAILURE;
-            
-
+            return -1;    
         }
-            //devolvemos los bytes escritos
-            return b;
+
+        //devolvemos los bytes escritos
+        return b;
+
         }else{
 
         perror("Error en el posicionamiento");
-        return EXIT_FAILURE;
+        return -1;
     }
 
 }
@@ -87,16 +87,15 @@ int bread(unsigned int nbloque, void *buf){
 
         if(b<0){
             perror("Error en la lectura");
-            return EXIT_FAILURE;
-            
+            return -1;
         }
+
         //devolvemos los bytes leidos
         return b;
 
     }else{
-
         perror("Error en el posicionamiento");
-        return EXIT_FAILURE;
+        return -1;
     }
 
 }
