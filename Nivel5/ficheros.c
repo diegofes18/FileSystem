@@ -4,114 +4,155 @@
 //Escribe el contenido del buffer en un fichero indicado en el inodo
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
 
-    //Asignacion de variables
-    int primerBL=offset/BLOCKSIZE;
-    int ultimoBL=(offset+nbytes-1)/BLOCKSIZE;
-    
-    //desplazamientos donde cae el offset
-    int desp1=offset%BLOCKSIZE;
-    int desp2=(offset+nbytes-1)%BLOCKSIZE;
-    int bloquefisico;
+    //declaraciones de variables
+    unsigned int primerBL, ultimoBL;
+    int desp1, desp2, nbfisico;
+    int bytesescritos = 0;
+    int auxByteEscritos = 0;
     char unsigned buf_bloque[BLOCKSIZE];
     struct inodo inodo;
-    int bytescritos=0;
-    int auxbyteescritos=0;
 
-    //leemos el inodo
-    if(leer_inodo(ninodo,&inodo)==-1){
-        perror("Error en mi_write_f al leer el inodo");
+    //lectura del inodo.
+    if (leer_inodo(ninodo, &inodo) == -1){
+        perror("Error in mi_write_f(): leer_inodo() \n");
         return -1;
     }
 
-    //Miramos permiso de escritura
-    if ((inodo.permisos&2)!=2){
-        perror("No tiene permisos de escritura");
+    //comprobamos que el inodo tenga los permisos para escribir
+    if ((inodo.permisos & 2) != 2){
+        perror("El inodo no tiene permisos para escribir en mi_write_f() \n");
         return -1;
     }
-    //Obtenemos numero de bloque fisico
-    bloquefisico=traducir_bloque_inodo(ninodo,primerBL,1);
-    if(bloquefisico==-1){
-        perror("error al escribir en el fichero");
+
+    //Asignaciones de las variables.
+    primerBL = offset / BLOCKSIZE;
+    ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
+
+    desp1 = offset % BLOCKSIZE;
+    desp2 = (offset + nbytes - 1) % BLOCKSIZE;
+
+    //Obtencion del numero de bloque fisico
+    nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
+    if (nbfisico == -1){
+        perror("Error in mi_write_f(): traducir_bloque_inodo()\n");
         return -1;
     }
-    //Leemos el bloque fisico
-    if(bread(bloquefisico,buf_bloque)== -1){
-        perror ("Error en mi_write_f al leer bloque fisico");
+
+    //leemos el bloque fisico
+    if (bread(nbfisico, buf_bloque) == -1){
+        perror("Error in mi_write_f(): bread()\n");
         return -1;
     }
-    //Caso en que el buffer cabe en un bloque 
-    if(primerBL==ultimoBL){
+
+    //Caso en el que lo que queremos escribir cabe en un bloque fisico
+    if (primerBL == ultimoBL){
         memcpy(buf_bloque + desp1, buf_original, nbytes);
-        auxbyteescritos=bwrite(bloquefisico, buf_bloque);
-        if(auxbyteescritos==-1){
-            perror("error en mi_write en bwrite");
+ 
+        //Escribimos el bloque fisico en el disco
+        auxByteEscritos = bwrite(nbfisico, buf_bloque);
+        if (auxByteEscritos == -1){
+            perror("Error in mi_write_f(): bwrite()\n");
             return -1;
         }
-        bytescritos+=nbytes;
+        bytesescritos += nbytes;
     }
-    
-    //Caso en el que ocupa mas de un bloque
-   if(primerBL<ultimoBL){
-       //primer bloque escrito parcialmente
-       memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
-       //escritura de bloque en disco
-       auxbyteescritos=bwrite(bloquefisico, buf_bloque);
-       bytescritos+=auxbyteescritos - desp1;
-       
-       //Bloques intermedios
-       for(int i=primerBL+1; i<ultimoBL; i++){
-           //traducimos a bloques intermedios
-           bloquefisico=traducir_bloque_inodo(ninodo ,i ,1);
-           if(bloquefisico==-1){
-               perror("traducibloque da error en mi_write");
-               return -1;
-           }
-           //escritura de bloques
-           auxbyteescritos=bwrite(bloquefisico, buf_original + (BLOCKSIZE - desp1)+(i-primerBL-1)* BLOCKSIZE);
-           bytescritos+=auxbyteescritos;
-           
-       }
-       //Ultimo bloque
-       bloquefisico=traducir_bloque_inodo(ninodo,ultimoBL,1);
-       if(bloquefisico==-1){
-           return EXIT_FAILURE;
-       }
-       //leemos el bloque fisico
-       if(bread(bloquefisico, buf_bloque)== EXIT_FAILURE){
-           perror("Error al leer el bloque");
-           return EXIT_FAILURE;
-       }
-       memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
-       
-       auxbyteescritos=bwrite(bloquefisico,buf_bloque);
-       
-       bytescritos+=desp2 + 1;
-    }   
-    if(leer_inodo(ninodo,&inodo)==-1){
-         perror("error en leer inodo mi_write"); 
-         return EXIT_FAILURE;
+
+    //Caso en el que la escritura ocupa mas de un bloque fisico
+    else if (primerBL < ultimoBL){
+
+        //Parte 1: Primero bloque escrito parcialmente
+        memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
+
+        //Escribimos el bloque fisico en el disco
+        auxByteEscritos = bwrite(nbfisico, buf_bloque);
+        if (auxByteEscritos == -1){
+            perror("Error in mi_write_f(): bwrite()\n");
+            return -1;
+        }
+
+        bytesescritos += auxByteEscritos - desp1;
+
+        //Parte 2: Bloques intermedios
+        for (int i = primerBL + 1; i < ultimoBL; i++){
+            //Obtenemos los bloques intermedios
+            nbfisico = traducir_bloque_inodo(ninodo, i, 1);
+            if (nbfisico == -1){
+                perror("Error in mi_write_f(): traducir_bloque_inodo()\n");
+                return -1;
+            }
+
+            //Escribimos los bloques intermedios
+            auxByteEscritos = bwrite(nbfisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE);
+            if (auxByteEscritos == -1){
+                perror("Error in mi_write_f(): bwrite()\n");
+                return -1;
+            }
+            bytesescritos += auxByteEscritos;
+        }
+
+        //Parte 3: Último bloque escrito parcialmente
+        /// EN CASO DE FALLO bytesescritos += offset;
+        //Obtenemos el bloque fisico
+        nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
+        if (nbfisico == -1){
+            perror("Error in mi_write_f(): traducir_bloque_inodo()\n");
+            return -1;
+        }
+
+        //Leemos el bloque fisico
+        if (bread(nbfisico, buf_bloque) == -1){
+            perror("Error in mi_write_f(): bread()\n");
+            return -1;
+        }
+
+        memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
+
+        auxByteEscritos = bwrite(nbfisico, buf_bloque);
+        if (auxByteEscritos == -1){
+            perror("Error in mi_write_f(): bwrite()\n");
+            return -1;
+        }
+
+        bytesescritos += desp2 + 1;
     }
-       
-       //Actualizamos metainformacion       
+
+    //Leer el inodo actualizado.
+    if (leer_inodo(ninodo, &inodo) == -1){
+        perror("Error in leer_inodo(): mi_write_f() \n");
+        return -1;
+    }
+
+    //Actualizar la metainformación
+
+    //Comprobar si lo que hemos escrito es mas grande que el fichero
     if (inodo.tamEnBytesLog < (nbytes + offset)){
         inodo.tamEnBytesLog = nbytes + offset;
         inodo.ctime = time(NULL);
     }
 
-     inodo.mtime = time(NULL);
+    inodo.mtime = time(NULL);
 
-     if(escribir_inodo(ninodo, inodo)== -1){
-         perror("error en escribir inodo");
-     }
-     //comprobamos
-     if(nbytes==bytescritos){ 
-         return bytescritos;
-     }
-     else{
-         return -1;
-     }
-       
-   
+    if (escribir_inodo(ninodo, inodo) == -1){
+        perror("Error in escribir_inodo(): mi_write_f() \n");
+        return 1;
+    }
+
+    //Comprobar que no haya errores de escritura y que se haya escrito todo bien.
+    if (nbytes == bytesescritos){
+#if DEBUGGER
+        printf("\tmi_write_f: BIEN\n");
+        printf("\tmi_read_f(): nbfisico = %i\n", nbfisico);
+
+#endif
+        return bytesescritos;
+    }
+    else
+    {
+#if DEBUGGER
+        printf("mi_write_f: MAL\n\tnbytes:%i\n\tbytesescritos:%i\n", nbytes, bytesescritos);
+#endif
+        return -1;
+    }
 }
 
 
@@ -120,13 +161,10 @@ Lee informacion de un fichero/directorio y la almacena en un buffer de memoria
 */
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
 
-    //Variables
-    int PrimerBloque= offset / BLOCKSIZE;
-    int UltimoBloque=(offset + nbytes - 1) / BLOCKSIZE;
-    int nBloqueFis;
-    int desp1=offset % BLOCKSIZE;
-    int desp2=(offset + nbytes - 1) % BLOCKSIZE;
-    int leidos=0;
+    //Declaraciones
+    unsigned int PrimerBloque, UltimoBloque;
+    int desp1, desp2, nBloqueFis;
+    int leidos = 0;
     int aux = 0;
     char unsigned buffer[BLOCKSIZE];
     struct inodo inodo;
@@ -154,6 +192,13 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         //leemos solo los bytes que podemos desde el offset hasta EOF
         nbytes=inodo.tamEnBytesLog-offset;
     }
+
+    //Asignaciones de las variables.
+    PrimerBloque = offset / BLOCKSIZE;
+    UltimoBloque = (offset + nbytes - 1) / BLOCKSIZE;
+
+    desp1 = offset % BLOCKSIZE;
+    desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
     //obtenemos el numero de bloque fisico
     nBloqueFis=traducir_bloque_inodo(ninodo,PrimerBloque,0);
