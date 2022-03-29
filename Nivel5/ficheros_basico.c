@@ -641,7 +641,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
                         if (bwrite(ptr_ant, buffer) == -1){
                             perror("Error en obtener_nRangoBL");
                             return -1;
-                            }
+                        }
                     }
                 }
             }

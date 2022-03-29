@@ -8,16 +8,17 @@ como parametro para mi_write_f()
 */
 
 int main(int argc, char *argv[]) {
-    //Validamos que la sintaxis sea correcta
+    //validacion de la sintaxis pasada por parametro
     if (argc != 4) {
 		    perror("ERROR SINTAXIS: permitir <nombre_dispositivo> <ninodo> <permisos>\n");
 		    return -1;
     }
 
     printf("Longitud del texto: %ld\n", strlen(argv[2]));
+    //ejemplos de offsets para utilizar los diferentes tipos de punteros
     int offsets[5] = {9000, 209000, 30725000, 409605000, 480000000};
 
-    //Montamos el dispositivo
+    //montamos el dispositivo
     if (bmount(argv[1]) == -1) {
 		    perror("Error en permitir.c --> bmount()\n");
 		    return -1;
@@ -48,19 +49,20 @@ int main(int argc, char *argv[]) {
         //usamos strlen para calcular la longitud del texto
         int length = strlen(argv[2]);
         char *buffer = malloc(length);
-        //Ponemos todas las posiciones de buffer a 0 mediante memset
+
+        //ponemos todas las posiciones de buffer a 0 mediante memset
         if(memset(buffer, 0, length)==NULL){
           return -1;
         }
 
-        //Comprobamos el funcionamiento de las funciones
+        //comprobamos el funcionamiento de las funciones
         int BytesL = mi_read_f(ninodo, buffer, offsets[i], length);
 
         printf("Bytes leídos: %d\n", BytesL);
 
         struct STAT stat;
 
-        //Obtenemos los datos del inodo escrito
+        //obtenemos los datos del inodo escrito
         if (mi_stat_f(ninodo, &stat)){
             perror("Error en mi_stat_f()\n");
             return -1;
@@ -69,7 +71,7 @@ int main(int argc, char *argv[]) {
         printf("stat.tamEnBytesLog = %d\n", stat.tamEnBytesLog);
         printf("stat.numBloquesOcupados = %d\n\n", stat.numBloquesOcupados);
 
-        //Si diferentes_inodos = 0 se reserva un solo inodo para todos los offsets
+        //si diferentes_inodos = 0 se reserva un solo inodo para todos los offsets
         if (strcmp(argv[3], "0")){
             ninodo=reservar_inodo('f', 6);
             if (ninodo == -1){
@@ -80,7 +82,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    //Desmontamos el dispositivo
+    //desmontamos el dispositivo
     if (bumount() == -1) {
 			perror("Error en permitir.c --> bumount()\n");
 			return -1;

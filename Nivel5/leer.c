@@ -20,75 +20,72 @@
  * cat de Linux, explorando TODO el fichero.
  * 
 */
-#define tambuffer = 1500
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]){
 
-    //Variables
+    //declaración de variables
+    struct inodo inodo;
     int ninodo;
     struct superbloque SB;
-    struct inodo inodo;
-    //Para lectura
-    int offset = 0;
-    int nbytes = 1500;
+    int tambuffer = 1500;
     int bytesleidos = 0;
-    char buffer[nbytes];
+    int offset = 0;
+    char buffer[tambuffer];
 
-    //Sintaxis correcta
-    if (argc != 3)
-    {
-        fprintf(stderr, "Sintaxis: leer <nombre_dispositivo><numero_inodo>\n");
-        return EXIT_FAILURE;
+    //miramos que la sintaxis sea la adecuada
+    if (argc != 3){
+        perror("Sintaxis: leer <nombre_dispositivo><numero_inodo>\n");
+        return -1;
     }
 
-    //Inicializacion del buffer a 0.
-    memset(buffer, 0, nbytes);
+    //ponemos todas las posiciones de buffer a 0 mediante memset
+    if(memset(buffer, 0, tambuffer)==NULL){
+        return -1;
+    }
+
     ninodo = atoi(argv[2]);
-    // Montar el dispositivo en el sistema.
-    if (bmount(argv[1]) == -1)
-    {
-        fprintf(stderr, "leer.c: Error al montar el dispositivo.\n");
-        return EXIT_FAILURE;
+
+    //montamos el dispositivo
+    if (bmount(argv[1]) == -1){
+        perror("leer.c: Error al montar el dispositivo.\n");
+        return -1;
     }
 
-    //Leer superbloque
-    if (bread(0, &SB) == EXIT_FAILURE)
-    {
-        fprintf(stderr, "leer.c: Error de lectura del superbloque.\n");
-        return EXIT_FAILURE;
+    //lectura del superbloque con el metodo bread
+    if (bread(0, &SB) == -1){
+        perror("leer.c: Error de lectura del superbloque.\n");
+        return -1;
     }
 
     // Lee del fichero hasta llenar el buffer o fin de fichero.
-    int auxBytesbytesleidos = mi_read_f(ninodo, buffer, offset, nbytes);
-    while (auxBytesbytesleidos > 0)
+    int leidos = mi_read_f(ninodo, buffer, offset, tambuffer);
+    while (leidos > 0)
     {
-        bytesleidos = bytesleidos + auxBytesbytesleidos;
+        bytesleidos = bytesleidos + leidos;
         // Escribe el contenido del buffer en el destino indicado.
-        write(1, buffer, auxBytesbytesleidos);
+        write(1, buffer, leidos);
 
         //Limpiar buffer
-        memset(buffer, 0, nbytes);
+        memset(buffer, 0, tambuffer);
         //Actulizar offset
-        offset = offset + nbytes;
+        offset = offset + tambuffer;
         //Leemos otra vez
-        auxBytesbytesleidos = mi_read_f(ninodo, buffer, offset, nbytes);
+        leidos = mi_read_f(ninodo, buffer, offset, tambuffer);
     }
 
-    // Leer el inodo del archivo
-    if (leer_inodo(ninodo, &inodo))
-    {
-        fprintf(stderr, "Error con la lectura del inodo.\n");
-        return EXIT_FAILURE;
+    //lectura del inodo
+    if (leer_inodo(ninodo, &inodo)){
+        perror("Error con la lectura del inodo.\n");
+        return -1;
     }
 
     fprintf(stderr, "total_bytesleidos: %d\ntamEnBytesLog: %d\n", bytesleidos, inodo.tamEnBytesLog);
 
     // Desmonta el dispositivo virtual
-    if (bumount() == EXIT_FAILURE)
+    if (bumount() == -1)
     {
-        fprintf(stderr, "leer.c: Error al desmonta el dispositivo virtual.\n");
-        return EXIT_FAILURE;
+        perror("leer.c: Error al desmonta el dispositivo virtual.\n");
+        return -1;
     }
     return EXIT_SUCCESS;
 }

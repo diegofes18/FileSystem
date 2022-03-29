@@ -1,5 +1,4 @@
 #include "ficheros.h"
-#define DEBUGGER 0
 
 //Escribe el contenido del buffer en un fichero indicado en el inodo
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
@@ -60,10 +59,10 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     //Caso en el que la escritura ocupa mas de un bloque fisico
     else if (primerBL < ultimoBL){
 
-        //Parte 1: Primero bloque escrito parcialmente
+        // Primero bloque escrito parcialmente
         memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
 
-        //Escribimos el bloque fisico en el disco
+        //Escribimos el bloque fisico 
         auxByteEscritos = bwrite(nbfisico, buf_bloque);
         if (auxByteEscritos == -1){
             perror("Error in mi_write_f(): bwrite()\n");
@@ -72,7 +71,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
         bytesescritos += auxByteEscritos - desp1;
 
-        //Parte 2: Bloques intermedios
+        // Bloques intermedios
         for (int i = primerBL + 1; i < ultimoBL; i++){
             //Obtenemos los bloques intermedios
             nbfisico = traducir_bloque_inodo(ninodo, i, 1);
@@ -90,9 +89,8 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             bytesescritos += auxByteEscritos;
         }
 
-        //Parte 3: Último bloque escrito parcialmente
-        /// EN CASO DE FALLO bytesescritos += offset;
-        //Obtenemos el bloque fisico
+        // Último bloque escrito parcialmente
+        
         nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
         if (nbfisico == -1){
             perror("Error in mi_write_f(): traducir_bloque_inodo()\n");
@@ -137,22 +135,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         return 1;
     }
 
-    //Comprobar que no haya errores de escritura y que se haya escrito todo bien.
-    if (nbytes == bytesescritos){
-#if DEBUGGER
-        printf("\tmi_write_f: BIEN\n");
-        printf("\tmi_read_f(): nbfisico = %i\n", nbfisico);
-
-#endif
-        return bytesescritos;
-    }
-    else
-    {
-#if DEBUGGER
-        printf("mi_write_f: MAL\n\tnbytes:%i\n\tbytesescritos:%i\n", nbytes, bytesescritos);
-#endif
-        return -1;
-    }
+    
 }
 
 
@@ -161,7 +144,7 @@ Lee informacion de un fichero/directorio y la almacena en un buffer de memoria
 */
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
 
-    //Declaraciones
+   
     unsigned int PrimerBloque, UltimoBloque;
     int desp1, desp2, nBloqueFis;
     int leidos = 0;
@@ -286,20 +269,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         return -1;
     }
 
-    //miramos que no haya errores de escritura 
-    if (nbytes == leidos){
-#if DEBUGGER
-        printf("\tmi_read_f: BIEN\n");
-#endif
-        return leidos;
-    }
-    else
-    {
-#if DEBUGGER
-        printf("mi_read_f(): MAL\n\tnbytes:%i\n\tbytesleidos:%i\n", nbytes, bytesleidos);
-#endif
-        return -1;
-    }
+    
 
 
 }
