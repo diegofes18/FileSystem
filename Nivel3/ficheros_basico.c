@@ -58,65 +58,57 @@ Inicializa el mapa de bits
 */
 int initMB(){
 
-    // Lee el superbloque del disco.
+    //lectura del superbloque del disco.
     struct superbloque SB;
-    if (bread(posSB, &SB) == -1)
-    {
-        return EXIT_FAILURE;
+    if (bread(posSB, &SB) == -1){
+        return -1;
     }
 
-    // Reserva un espacio de memoria para el buffer de tamaño bloque.
+    //reservamos espacio para el buffer 
     unsigned char *buffer = malloc(sizeof(char) * BLOCKSIZE);
-    if (!buffer)
-    {
-        return EXIT_FAILURE;
+    if (!buffer){
+        return -1;
     }
 
-    // Pone todas las posiciones del buffer a cero.
+    //ponemos todas las posiciones del buffer a cero
     memset(buffer, 0, BLOCKSIZE);
 
-    // Itera tantas veces como bloques haya en el mapa de bits del disco.
-    for (int ind = SB.posPrimerBloqueMB; ind <= SB.posUltimoBloqueMB; ind++)
-    {
-        // Escribe el buffer en disco dejando el bloque a cero.
-        if (bwrite(ind, buffer) == -1)
-        {
+    //for para todos los bloques del mapa de bits
+    for (int ind = SB.posPrimerBloqueMB; ind <= SB.posUltimoBloqueMB; ind++){
+        //ponemos el bloque a cero
+        if (bwrite(ind, buffer) == -1){
             free(buffer);
-            return EXIT_FAILURE;
+            return -1;
         }
     }
 
-    // Libera el buffer.
+    //liberacion del buffer.
     free(buffer);
+    SB.cantBloquesLibres--;
 
     // Marca como ocupado los bloques de metadatos indicados en el superbloque.
-    for (unsigned int i = posSB; i <= SB.posUltimoBloqueAI; i++)
-    {
-        if (escribir_bit(i, 1))
-        {
-            return EXIT_FAILURE;
+    for (unsigned int i = posSB; i <= SB.posUltimoBloqueAI; i++){
+        if (escribir_bit(i, 1)){
+            return -1;
         }
     }
 
     // Actualiza la cantidad de bloques libres en el superbloque.
     SB.cantBloquesLibres = SB.cantBloquesLibres - ((SB.posUltimoBloqueMB + 1) -
                                                    SB.posPrimerBloqueMB);
-    if (bwrite(posSB, &SB) == -1)
-    {
-        return EXIT_FAILURE;
+    if (bwrite(posSB, &SB) == -1){
+        return -1;
     }
 
     return EXIT_SUCCESS;
 }
 
 //Inicializamos el array de inodos
-int initAI()
-{
+int initAI(){
     // Lee el superbloque.
     struct superbloque SB;
-    if (bread(posSB, &SB) == -1)
-    {
-        return EXIT_FAILURE;
+    if (bread(posSB, &SB) == -1){
+        return -1;
     }
 
     // Inicializa estructura de inodos.
