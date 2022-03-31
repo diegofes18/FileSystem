@@ -84,18 +84,17 @@ int initMB(){
 
     //liberacion del buffer.
     free(buffer);
-    SB.cantBloquesLibres--;
 
-    // Marca como ocupado los bloques de metadatos indicados en el superbloque.
+    //marcamos como ocupados los bloques correspondientes
     for (unsigned int i = posSB; i <= SB.posUltimoBloqueAI; i++){
         if (escribir_bit(i, 1)){
             return -1;
         }
     }
 
-    // Actualiza la cantidad de bloques libres en el superbloque.
-    SB.cantBloquesLibres = SB.cantBloquesLibres - ((SB.posUltimoBloqueMB + 1) -
-                                                   SB.posPrimerBloqueMB);
+    //actualiza la cantidad de bloques libres
+    SB.cantBloquesLibres = SB.cantBloquesLibres - ((SB.posUltimoBloqueMB + 1) -SB.posPrimerBloqueMB);
+
     if (bwrite(posSB, &SB) == -1){
         return -1;
     }
@@ -105,49 +104,42 @@ int initMB(){
 
 //Inicializamos el array de inodos
 int initAI(){
-    // Lee el superbloque.
+    //lectura del superbloque
     struct superbloque SB;
     if (bread(posSB, &SB) == -1){
         return -1;
     }
 
-    // Inicializa estructura de inodos.
+    //inicializamos la estructura de inodos
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
     int continodos = SB.posPrimerInodoLibre + 1;
 
-    // Itera dentro de todos los bloques del array de inodos.
-    for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
-    {
-        // Itera dentro de cada estructura de inodos.
-        for (int j = 0; j < BLOCKSIZE / INODOSIZE; j++)
-        {
-            // Iniciliza el contenido del inodo.
+    //for dentro del array de inodos para sus bloques
+    for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
+        for (int j = 0; j < BLOCKSIZE / INODOSIZE; j++){
+            //inicializamos el contenido del inodo
             inodos[j].tipo = 'l';
-            if (continodos < SB.totInodos)
-            {
+            if (continodos < SB.totInodos){
                 inodos[j].punterosDirectos[0] = continodos;
                 continodos++;
             }
-            else
-            {
+            else{
                 inodos[j].punterosDirectos[0] = UINT_MAX;
             }
         }
 
-        // Escribe el inodo en el dispositivo.
-        if (bwrite(i, &inodos) == -1)
-        {
-            return EXIT_FAILURE;
+        //escritura del inodo
+        if (bwrite(i, &inodos) == -1){
+            return -1;
         }
     }
 
-    // Actualiza la cantidad de bloques libres en el superbloque.
-    SB.cantBloquesLibres = SB.cantBloquesLibres - ((SB.posUltimoBloqueAI + 1) -
-                                                   SB.posPrimerBloqueAI);
-    // Escribe el superbloque en el dispositivo.
-    if (bwrite(posSB, &SB) == -1)
-    {
-        return EXIT_FAILURE;
+    //actualiza la cantidad de bloques libres
+    SB.cantBloquesLibres = SB.cantBloquesLibres - ((SB.posUltimoBloqueAI + 1) -SB.posPrimerBloqueAI);
+
+    //escritura del superbloque
+    if (bwrite(posSB, &SB) == -1){
+        return -1;
     }
 
     return EXIT_SUCCESS;
@@ -160,10 +152,11 @@ del MB que representa el bloque nbloque
 int escribir_bit(unsigned int nbloque, unsigned int bit){
         
     struct superbloque SB;
-    //Leemos el superbloque
+    //lectura del superbloque
     if(bread(posSB,&SB)==-1){
         return -1;
     }
+
     //inicializamos las variables
     unsigned int posbyte = nbloque / 8; //posicion del byte en el MB
     unsigned int posbit = nbloque % 8; //posicion del bit dentro de ese byte
@@ -171,10 +164,12 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     unsigned int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB; //Posicion absoluta
 
     unsigned char bufferMB[BLOCKSIZE];
+    
     //leemos el bloque donde esta el bit 
-    if(bread(nbloqueabs,bufferMB)== EXIT_FAILURE){
+    if(bread(nbloqueabs,bufferMB)== -1){
         return -1;
     }
+
     //posicion del byte relativa al bloque 
     posbyte=posbyte % BLOCKSIZE;
 
@@ -190,6 +185,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     else{
         bufferMB[posbyte] &=~mascara; // operadores AND y NOT para bits
     }
+
     //Escribimos el bufferMB en el dispositivo virtual
     if (bwrite(nbloqueabs, bufferMB) == -1){
         return -1;
@@ -204,11 +200,14 @@ Lee un determinado bit del MB y devuelve el valor del bit leído
 */
 char leer_bit(unsigned int nbloque){
     struct superbloque SB;
+    
     unsigned char mascara = 128; // 10000000
-    //Leemos el superbloque
+
+    //lectura del superbloque
     if (bread(posSB, &SB) == -1) {
         return -1;
-    }   
+    } 
+
     unsigned int posbyte = nbloque / 8; //Posición del byte en el MB
     unsigned int posbit = nbloque % 8; //Posición del bit dentro de ese byte
     unsigned int nbloqueMB = posbyte / BLOCKSIZE; // bloque del MB que se halla ese bit para leerlo
@@ -241,7 +240,7 @@ lo ocupa  y devuelve su posición
  int reservar_bloque(){
     
     struct superbloque SB;
-    //Leemos el superbloque
+    //lectura del superbloque
     if(bread(posSB,&SB)==-1){
         return -1;
     }
@@ -261,9 +260,9 @@ lo ocupa  y devuelve su posición
         return -1;
     }
 
-    //Localizamos qué byte dentro de ese bloque tiene algún 0
+    //localizamos la posición del primer bloque del MB que tenga algún bit a 0
     while(libre==0){
-        if (bread(posBloqueMB, bufferMB) == EXIT_FAILURE) {
+        if (bread(posBloqueMB, bufferMB) == -1) {
             perror("Error al reservar_bloque()\n");
             return -1;
         }
@@ -276,13 +275,13 @@ lo ocupa  y devuelve su posición
         posBloqueMB++;
     }
 
-    //Localizamos el byte que contiene el 0 dentro del bloque encontrado anteriormente
+    //localizamos el byte que contiene el 0 dentro del bloque encontrado anteriormente
     unsigned int posbyte = 0;
     while (bufferMB[posbyte] == 255){
         posbyte++;
     }
 
-    // Localizamos el primer bit dentro de ese byte que vale 0
+    //localizamos el primer bit dentro de ese byte que vale 0
     unsigned char mascara = 128; // 10000000
     unsigned int posbit = 0;
     while (bufferMB[posbyte] & mascara)     {
