@@ -10,32 +10,28 @@
 *
 * return: devuelve Exit_Success o Exit_Failure si ha habido un error.
 */
-int main(int argc, char const *argv[])
-{
-       // Comprueba que la sintaxis sea correcta.
-       if (argc != 2)
-       {
-              fprintf(stderr,
-                      "Error de sintaxis: ./leer_sf <nombre_dispositivo>\n");
-              return EXIT_FAILURE;
+
+int main(int argc, char const *argv[]){
+       //comprobamos la sintaxis
+       if (argc != 2){
+              perror("Error de sintaxis: ./leer_sf <nombre_dispositivo>\n");
+              return -1;
        }
 
-       // Monta el disco en el sistema.
-       if (bmount(argv[1]) == -1)
-       {
-              fprintf(stderr, "Error de montaje de disco.\n");
-              return EXIT_FAILURE;
+       //montamos el disco
+       if (bmount(argv[1]) == -1){
+              perror("Error de montaje de disco.\n");
+              return -1;
        }
 
-       // Lee el superbloque del disco.
+       //lectura del superbloque
        struct superbloque SB;
-       if (bread(0, &SB) == -1)
-       {
-              fprintf(stderr, "Error de lectura del superbloque.\n");
-              return EXIT_FAILURE;
+       if (bread(0, &SB) == -1){
+              perror("Error de lectura del superbloque.\n");
+              return -1;
        }
 
-       // Muestra por consola el contenido del superbloque.
+       //muestra por consola el contenido del superbloque
        printf("DATOS DEL SUPERBLOQUE\n");
        printf("posPrimerBloqueMB = %d\n", SB.posPrimerBloqueMB);
        printf("posUltimoBloqueMB = %d\n", SB.posUltimoBloqueMB);
@@ -51,49 +47,41 @@ int main(int argc, char const *argv[])
        printf("totInodos = %d\n", SB.totInodos);
 
         printf("\nsizeof struct superbloque: %ld\n", sizeof(struct superbloque));
-    printf("sizeof struct inodo:  %ld\n", sizeof(struct inodo));
+        printf("sizeof struct inodo:  %ld\n", sizeof(struct inodo));
 
-    printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
-    //Podéis hacer también un recorrido de la lista de inodos libres (mostrando para cada inodo el campo punterosDirectos[0]).
-    struct inodo inodos[BLOCKSIZE / INODOSIZE];
-    int contlibres = 0;
+        printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
+        struct inodo inodos[BLOCKSIZE / INODOSIZE];
+        int contlibres = 0;
 
-    for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
-    {
-        //          &inodos
-        if (bread(i, inodos) == EXIT_FAILURE)
-        {
-            return EXIT_FAILURE;
-        }
+         for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
+            if (bread(i, inodos) == -1){
+                return -1;
+            }
 
-        for (int j = 0; j < BLOCKSIZE / INODOSIZE; j++)
-        {
-            if ((inodos[j].tipo == 'l'))
-            {
-                contlibres++;
-                if (contlibres < 20)
-                {
-                    printf("%d ", contlibres);
-                }
-                else if (contlibres == 21)
-                {
+            for (int j = 0; j < BLOCKSIZE / INODOSIZE; j++){
+                if ((inodos[j].tipo == 'l')){
+                    contlibres++;
+                    if (contlibres < 20){
+                        printf("%d ", contlibres);
+
+                    }else if (contlibres == 21){
                     printf("... ");
-                }
-                else if ((contlibres > 24990) && (contlibres < SB.totInodos))
-                {
+
+                }else if ((contlibres > 24990) && (contlibres < SB.totInodos)){
                     printf("%d ", contlibres);
-                }
-                else if (contlibres == SB.totInodos)
-                {
+
+                }else if (contlibres == SB.totInodos){
                     printf("-1 \n");
                 }
+
                 contlibres--;
             }
             contlibres++;
         }
     }
 
-       // Desmonta el disco del sistema.
+       //desmontamos
        bumount();
+       
        return EXIT_SUCCESS;
 }

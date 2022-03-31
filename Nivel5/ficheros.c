@@ -132,8 +132,10 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
     if (escribir_inodo(ninodo, inodo) == -1){
         perror("Error in escribir_inodo(): mi_write_f() \n");
-        return 1;
+        return -1;
     }
+
+    return EXIT_SUCCESS;
 
     
 }
@@ -144,7 +146,7 @@ Lee informacion de un fichero/directorio y la almacena en un buffer de memoria
 */
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
 
-   
+    //variables
     unsigned int PrimerBloque, UltimoBloque;
     int desp1, desp2, nBloqueFis;
     int leidos = 0;
@@ -269,8 +271,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         return -1;
     }
 
-    
-
+    return EXIT_SUCCESS;
 
 }
 
@@ -281,7 +282,7 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
     struct inodo inodo;
     if(leer_inodo(ninodo,&inodo)==-1){
         perror("error mi stat:leer inodo");
-        return EXIT_FAILURE;
+        return -1;
 
     }
     // Actualizamos valores del inodo
