@@ -50,7 +50,7 @@ int main(int argc, char const *argv[])
        printf("totBloques = %d\n", SB.totBloques);
        printf("totInodos = %d\n", SB.totInodos);
 
-        printf("\nsizeof struct superbloque: %ld\n", sizeof(struct superbloque));
+    printf("\nsizeof struct superbloque: %ld\n", sizeof(struct superbloque));
     printf("sizeof struct inodo:  %ld\n", sizeof(struct inodo));
 
     printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");

@@ -1,4 +1,4 @@
-//#include <stdlib.h>
+#include <stdlib.h>
 #include "ficheros_basico.h"
 //#include "bloques.h"
 /* Fichero: leer_f.c:

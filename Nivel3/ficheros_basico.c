@@ -57,55 +57,47 @@ int tamAI(unsigned int ninodos){
 Inicializa el mapa de bits
 */
 int initMB(){
+    
+    unsigned char buffer[BLOCKSIZE];
+    //ponemos buffer a 0
+    if (memset(buffer, 0, BLOCKSIZE) == NULL){
+        return -1;
+    }
 
-    // Lee el superbloque del disco.
+    //lectura del superbloque
     struct superbloque SB;
-    if (bread(posSB, &SB) == -1)
-    {
-        return EXIT_FAILURE;
+    if (bread(posSB, &SB) == -1){
+        return -1;
     }
-
-    // Reserva un espacio de memoria para el buffer de tamaño bloque.
-    unsigned char *buffer = malloc(sizeof(char) * BLOCKSIZE);
-    if (!buffer)
-    {
-        return EXIT_FAILURE;
-    }
-
-    // Pone todas las posiciones del buffer a cero.
-    memset(buffer, 0, BLOCKSIZE);
 
     // Itera tantas veces como bloques haya en el mapa de bits del disco.
-    for (int ind = SB.posPrimerBloqueMB; ind <= SB.posUltimoBloqueMB; ind++)
-    {
+    for (int ind = SB.posPrimerBloqueMB; ind <= SB.posUltimoBloqueMB; ind++){
         // Escribe el buffer en disco dejando el bloque a cero.
-        if (bwrite(ind, buffer) == -1)
-        {
-            free(buffer);
-            return EXIT_FAILURE;
+        if (bwrite(ind, buffer) == -1){
+            //free(buffer);
+            return -1;
         }
     }
 
     // Libera el buffer.
-    free(buffer);
+    //free(buffer);
 
-    // Marca como ocupado los bloques de metadatos indicados en el superbloque.
-    for (unsigned int i = posSB; i <= SB.posUltimoBloqueAI; i++)
+    //Ponemos a 1 en el MB los bits que corresponden a los bloques que ocupa el
+    //superbloque, el propio MB, y el array de inodos.
+    for (unsigned int i = posSB; i < SB.posPrimerBloqueDatos; i++)
     {
-        if (escribir_bit(i, 1))
-        {
-            return EXIT_FAILURE;
-        }
+        //Podriamos reservar todos los bloques de los metadatos:
+        reservar_bloque();
     }
 
-    // Actualiza la cantidad de bloques libres en el superbloque.
+    //Actualiza la cantidad de bloques libres en el superbloque.
     SB.cantBloquesLibres = SB.cantBloquesLibres - ((SB.posUltimoBloqueMB + 1) -
                                                    SB.posPrimerBloqueMB);
     if (bwrite(posSB, &SB) == -1)
     {
-        return EXIT_FAILURE;
+        return -1;
     }
-
+*/
     return EXIT_SUCCESS;
 }
 
@@ -145,7 +137,7 @@ int initAI()
         // Escribe el inodo en el dispositivo.
         if (bwrite(i, &inodos) == -1)
         {
-            return EXIT_FAILURE;
+            return -1;
         }
     }
 
@@ -180,7 +172,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
 
     unsigned char bufferMB[BLOCKSIZE];
     //leemos el bloque donde esta el bit 
-    if(bread(nbloqueabs,bufferMB)== EXIT_FAILURE){
+    if(bread(nbloqueabs,bufferMB)== -1){
         return -1;
     }
     //posicion del byte relativa al bloque 
@@ -271,7 +263,7 @@ lo ocupa  y devuelve su posición
 
     //Localizamos qué byte dentro de ese bloque tiene algún 0
     while(libre==0){
-        if (bread(posBloqueMB, bufferMB) == EXIT_FAILURE) {
+        if (bread(posBloqueMB, bufferMB) == -1) {
             perror("Error al reservar_bloque()\n");
             return -1;
         }
@@ -299,7 +291,7 @@ lo ocupa  y devuelve su posición
     }
 
     //Determinar cuál es finalmente el nº de bloque físico que podemos reservar
-    int nbloque = ((posBloqueMB - SB.posPrimerBloqueMB) * BLOCKSIZE + posbyte) * 8 + posbit;
+    unsigned int nbloque = ((posBloqueMB - SB.posPrimerBloqueMB) * BLOCKSIZE + posbyte) * 8 + posbit;
 
     //Indicamos que el bloque está reservado
     if (escribir_bit(nbloque, 1) == -1){
