@@ -323,6 +323,28 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
     return EXIT_SUCCESS;
 }
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
-
-}
-
+    int primerBL;
+    int numBloquesLiberados;
+    //Lectura del inodo
+    leer_inodo(ninodo, &inodo);
+    //Comprobamos si los permisos son suficientes
+    if ((inodo.permisos & 2) != 2){
+        perror("Error en la funcion mi_truncar_f() --> No tiene permisos de escritura.");
+        return -1;
+    } else if (inodo.tamEnBytesLog <= nbytes){
+        perror("Error en la funcion mi_truncar_f() --> en tamBytesLog");
+        return -1;
+    }
+    if (nbytes % BLOCKSIZE == 0) {
+      nblogico = nbytes / BLOCKSIZE;
+    } else {
+      nblogico = nbytes / BLOCKSIZE + 1;
+    }
+    numBloquesLiberados = liberar_bloques_inodo(primerBL, &inodo);
+    inodo.numBloquesOcupados = inodo.numBloquesOcupados - numBloquesLiberados;
+    inodo.mtime = time(NULL);
+    inodo.ctime  = time(NULL);
+    inodo.tamEnBytesLog = nbytes;
+    escribir_inodo(ninodo, inodo);
+    return numBloquesLiberados;
+}   
