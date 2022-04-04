@@ -671,6 +671,7 @@ int liberar_inodo(unsigned int ninodo) {
     //Llama a liberar bloques y guardamos el numero de los bloques liberados.
     int bInodoLiberados = liberar_bloques_inodo(0, &inodo);
     
+    
     // A la cantidad de bloques ocupados del inodo se le restará
     // la cantidad de bloques liberados por esta función y debería ser 0
     if (inodo.numBloquesOcupados - bInodoLiberados != 0) {  
