@@ -654,19 +654,49 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
                     }
                 }
             }
-
             if (salvar_inodo == 1){
                 if (escribir_inodo(ninodo, inodo) == -1){
                     perror("Error en salvar inodo");
                     return -1;
         }
     }
-
             return ptr; //nbfisico del bloque de datos
-
     }
-    
 
+int liberar_inodo(unsigned int ninodo) {
+    //Leectura del superbloque
+    struct inodo inodo;
+    //Lectura del inodo
+    leer_inodo(ninodo, &inodo);
+    //Llama a liberar bloques y guardamos el numero de los bloques liberados.
+    int bInodoLiberados = liberar_bloques_inodo(0, &inodo);
+    
+    // A la cantidad de bloques ocupados del inodo se le restará
+    // la cantidad de bloques liberados por esta función y debería ser 0
+    if (inodo.numBloquesOcupados - bInodoLiberados != 0) {  
+        perror("Error en ficheros_basico.c en la función liberar_inodo()\n");
+        return -1;
+    }
+    // Marcar el inodo como tipo libre
+    inodo.tipo = 'l';
+    if (bread(posSB,&SB) == -1) {
+        perror("Error en ficheros_basico.c en la función liberar_inodo()\n");
+        return -1;
+    }
+    inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
+    SB.posPrimerInodoLibre = ninodo;
+    SB.cantInodosLibres = SB.cantInodosLibres + 1;
+    if (bwrite(posSB, &SB) == -1) {
+        perror("Error en ficheros_basico.c en la funcion liberar_inodo()\n");
+        return -1;
+    }
+    escribir_inodo(ninodo, inodo);
+
+  return ninodo;
+}
+ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
+
+ }
 
  
 
