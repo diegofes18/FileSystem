@@ -642,6 +642,11 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
 
     return ptr; //nbfisico del bloque de datos
 }
+
+/*
+Liberar un inodo implica por un lado, que tal inodo pasará a la cabeza de la lista de inodos libres
+y tendremos un inodo más libre en el sistema.
+*/
 int liberar_inodo(unsigned int ninodo) {
 
     struct inodo inodo;
@@ -686,7 +691,9 @@ int liberar_inodo(unsigned int ninodo) {
 }
 
 
-     
+/*
+libera todos los bloques ocupados a partir del bloque lógico indicado por el argumento primerBL
+*/
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     
     unsigned int nivel_punteros, indice, ptr, nBL, ultimoBL;
