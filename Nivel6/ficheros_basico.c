@@ -642,8 +642,6 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
 
     return ptr; //nbfisico del bloque de datos
 }
-
-
 int liberar_inodo(unsigned int ninodo) {
 
     struct inodo inodo;
@@ -794,18 +792,3 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     }
     return liberados;
  }
-
- 
-
-
-
-
-
-    
-
-
- 
-
-
-
-

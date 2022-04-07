@@ -1,3 +1,4 @@
+//
 #include "ficheros.h"
 #define DEBUGGER 0
 
@@ -357,6 +358,10 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
     return EXIT_SUCCESS;
 }
 
+/*
+Trunca un fichero/directorio a los bytes indicados como nbytes, 
+liberando los bloques necesarios
+*/
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     int primerBL;
     int numBloquesLiberados;

@@ -21,16 +21,18 @@
  * 
 */
 
+#define tambuffer = 1500
+
 int main(int argc, char const *argv[]){
 
     //declaración de variables
     struct inodo inodo;
     int ninodo;
     struct superbloque SB;
-    int tambuffer = 1500;
+    int nbytes = 1500; 
     int bytesleidos = 0;
     int offset = 0;
-    char buffer[tambuffer];
+    char buffer[nbytes];
 
     //miramos que la sintaxis sea la adecuada
     if (argc != 3){
@@ -39,7 +41,7 @@ int main(int argc, char const *argv[]){
     }
 
     //ponemos todas las posiciones de buffer a 0 mediante memset
-    if(memset(buffer, 0, tambuffer)==NULL){
+    if(memset(buffer, 0, nbytes)==NULL){
         return -1;
     }
 
@@ -58,19 +60,18 @@ int main(int argc, char const *argv[]){
     }
 
     // Lee del fichero hasta llenar el buffer o fin de fichero.
-    int leidos = mi_read_f(ninodo, buffer, offset, tambuffer);
-    while (leidos > 0)
-    {
+    int leidos = mi_read_f(ninodo, buffer, offset, nbytes);
+    while (leidos > 0){
         bytesleidos = bytesleidos + leidos;
         // Escribe el contenido del buffer en el destino indicado.
         write(1, buffer, leidos);
 
         //Limpiar buffer
-        memset(buffer, 0, tambuffer);
+        memset(buffer, 0, nbytes);
         //Actulizar offset
-        offset = offset + tambuffer;
+        offset = offset + nbytes;
         //Leemos otra vez
-        leidos = mi_read_f(ninodo, buffer, offset, tambuffer);
+        leidos = mi_read_f(ninodo, buffer, offset, nbytes);
     }
 
     //lectura del inodo
@@ -82,8 +83,7 @@ int main(int argc, char const *argv[]){
     fprintf(stderr, "total_bytesleidos: %d\ntamEnBytesLog: %d\n", bytesleidos, inodo.tamEnBytesLog);
 
     // Desmonta el dispositivo virtual
-    if (bumount() == -1)
-    {
+    if (bumount() == -1){
         perror("leer.c: Error al desmonta el dispositivo virtual.\n");
         return -1;
     }

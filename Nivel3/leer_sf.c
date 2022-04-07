@@ -40,11 +40,11 @@ int main(int argc, char const *argv[])
     printf("totBloques = %d\n", SB.totBloques);
     printf("totInodos = %d\n", SB.totInodos);
 
-    printf("\nsizeof struct superbloque: %ld\n", sizeof(struct superbloque));
-    printf("sizeof struct inodo:  %ld\n", sizeof(struct inodo));
+    //printf("\nsizeof struct superbloque: %ld\n", sizeof(struct superbloque));
+    //printf("sizeof struct inodo:  %ld\n", sizeof(struct inodo));
 
-    printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
-    //Podéis hacer también un recorrido de la lista de inodos libres (mostrando para cada inodo el campo punterosDirectos[0]).
+    //printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
+/*    
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
     int contlibres = 0;
 
@@ -82,6 +82,7 @@ int main(int argc, char const *argv[])
             contlibres++;
         }
     }
+*/
 
     //Probación el tamaño del tipo time_t para vuestra plataforma/compilador:
     //printf("\nsizeof time_t is: %ld\n", sizeof(time_t));
