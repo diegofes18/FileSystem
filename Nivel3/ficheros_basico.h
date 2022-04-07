@@ -1,3 +1,5 @@
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
+
 #include "bloques.h"
 #include <limits.h> 
 #include <time.h>

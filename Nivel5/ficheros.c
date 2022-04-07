@@ -1,4 +1,7 @@
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
+
 #include "ficheros.h"
+
 #define DEBUGGER 0
 
 

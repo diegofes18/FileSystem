@@ -1,3 +1,5 @@
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
+
 #include "ficheros_basico.h"
 
 #define DEBUG3 0 //Debugger del nivel 3
@@ -530,8 +532,11 @@ int  obtener_indice (unsigned int nblogico, int nivel_punteros){
     return -1;
 }
 
-int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reservar)
-{
+/*
+se encarga de obtener el nº de bloque físico correspondiente 
+a un bloque lógico determinado del inodo indicado
+*/
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reservar){
     struct inodo inodo;
     unsigned int ptr;
     int ptr_ant, salvar_inodo, nRangoBL, nivel_punteros, indice;

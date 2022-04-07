@@ -1,3 +1,5 @@
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
+
 #include "ficheros.h"
 
 int main(int argc, char **argv){
@@ -23,7 +25,7 @@ int main(int argc, char **argv){
     struct STAT p_stat;
     if (mi_stat_f(ninodo, &p_stat)){
         perror( "truncar.c: Error mi_stat_f()\n");
-        return EXIT_FAILURE;
+        return -1;
     }
     
     //Configurar la fecha actual para mostrarla

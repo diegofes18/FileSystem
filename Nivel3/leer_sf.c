@@ -1,3 +1,5 @@
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
+
 #include "ficheros_basico.h"
 
 //La ejecución de leer_sf.c permite mostrar el contenido del superbloque.

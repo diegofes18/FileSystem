@@ -1,3 +1,5 @@
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
+
 #include "ficheros_basico.h"
 
 #define DEBUG3 1

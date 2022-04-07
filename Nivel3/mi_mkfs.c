@@ -1,11 +1,6 @@
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
 
-//#include "bloques.h"
-//#include "ficheros_basico.c"
 #include "ficheros_basico.h"
-
-
-//char* buf;
-
 
 int main(int argc, char **argv){
 

@@ -138,8 +138,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         perror("Error in escribir_inodo(): mi_write_f() \n");
         return -1;
     }
-
-    //Comprobar que no haya errores de escritura y que se haya escrito todo bien.
+//Comprobar que no haya errores de escritura y que se haya escrito todo bien.
     if (nbytes == bytesescritos)
     {
 #if DEBUGGER

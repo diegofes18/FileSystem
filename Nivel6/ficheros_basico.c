@@ -1,3 +1,5 @@
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
+
 #include "ficheros_basico.h"
 
 #define DEBUG3 0 //Debugger del nivel 3
@@ -419,7 +421,6 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo){
 Encuentra el primer inodo libre , lo reserva, devuelve su número 
 y actualiza la lista enlazada de inodos libres
 */
-
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
 
     //lectura del superbloque
@@ -530,8 +531,11 @@ int  obtener_indice (unsigned int nblogico, int nivel_punteros){
     return -1;
 }
 
-int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reservar)
-{
+/*
+se encarga de obtener el nº de bloque físico correspondiente 
+a un bloque lógico determinado del inodo indicado
+*/
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reservar){
     struct inodo inodo;
     unsigned int ptr;
     int ptr_ant, salvar_inodo, nRangoBL, nivel_punteros, indice;
@@ -675,7 +679,7 @@ int liberar_inodo(unsigned int ninodo) {
         perror("Error en ficheros_basico.c en la función liberar_inodo()\n");
         return -1;
     }
-    
+    SB.cantInodosLibres++;
     inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
     SB.posPrimerInodoLibre = ninodo;
     SB.cantInodosLibres = SB.cantInodosLibres + 1;
@@ -718,15 +722,17 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
         //Ultimo Bloque Lógico no es un bloque entero
         ultimoBL = (inodo->tamEnBytesLog) / BLOCKSIZE;
     }
+
+    ptr=0;
     memset(bufAux_punteros, 0, BLOCKSIZE);
-    ptr = 0;
+
     //Recorrido BL
     for (nBL = primerBL; nBL <= ultimoBL; nBL++){
 
         nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr); //0:D, 1:I0, 2:I1, 3:I2
         if (nRangoBL < 0){
             perror( "liberar_bloques_inodo(): Error al obtener_nRangoBL().\n");
-            return EXIT_FAILURE;
+            return -1;
         }
 
         nivel_punteros = nRangoBL; //el nivel_punteros +alto cuelga del inodo
@@ -737,7 +743,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
                 //solo leemos del dispositivo si no está ya cargado previamente en un buffer
                 if (bread(ptr, bloques_punteros[nivel_punteros - 1]) == EXIT_FAILURE) {
                     perror( "liberar_bloques_inodo(): Error al leer el dispositivo no cargado previamente.\n");
-                    return EXIT_FAILURE;
+                    return -1;
                 }
             }
 
@@ -746,49 +752,46 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
             ptr = bloques_punteros[nivel_punteros - 1][indice];
             nivel_punteros--;
         }
-         if (ptr > 0)
-        { //si existe bloque de datos
+
+        if (ptr > 0){ //si existe bloque de datos
 
             liberar_bloque(ptr);
             liberados++;
 
             printf("[liberar_bloques_inodo()-> liberado BF %d de datos par a BL %d]\n", ptr, nBL);
 
-            if (nRangoBL == 0)
-            { //es un puntero Directo
+            if (nRangoBL == 0){ //es un puntero Directo
                 inodo->punterosDirectos[nBL] = 0;
-            }
-            else
-            {
+
+            }else{
                 nivel_punteros = 1;
-                while (nivel_punteros <= nRangoBL)
-                {
+
+                while (nivel_punteros <= nRangoBL){
 
                     indice = indices[nivel_punteros - 1];
                     bloques_punteros[nivel_punteros - 1][indice] = 0;
                     ptr = ptr_nivel[nivel_punteros - 1];
 
-                    if (memcmp(bloques_punteros[nivel_punteros - 1], bufAux_punteros, BLOCKSIZE) == 0)
-                    {
+                    if (memcmp(bloques_punteros[nivel_punteros - 1], bufAux_punteros, BLOCKSIZE) == 0){
                         //No cuelgan más bloques ocupados, hay que liberar el bloque de punteros
                         liberar_bloque(ptr);
                         liberados++;
 
                         //Incluir mejora para saltar los bloques que no sea necesario explorar//
 
-                        if (nivel_punteros == nRangoBL)
-                        {
+                        if (nivel_punteros == nRangoBL){
                             inodo->punterosIndirectos[nRangoBL - 1] = 0;
                         }
+
                         nivel_punteros++;
-                    }
-                    else
-                    { //escribimos en el dispositivo el bloque de punteros modificado
-                        if (bwrite(ptr, bloques_punteros[nivel_punteros - 1]) == EXIT_FAILURE)
-                        {
+
+                    }else{ //escribimos en el dispositivo el bloque de punteros modificado
+
+                        if (bwrite(ptr, bloques_punteros[nivel_punteros - 1]) == -1){
                             perror( "liberar_bloques_inodo(): Error al escribir en el dispositivo el bloque de punteros modificado.\n");
                             return -1;
                         }
+                        
                         //hemos de salir del bucle ya que no será necesario liberar los bloques de niveles
                         //superiores de los que cuelga
                         nivel_punteros = nRangoBL + 1;
