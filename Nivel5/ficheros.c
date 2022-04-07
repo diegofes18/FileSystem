@@ -1,4 +1,6 @@
 #include "ficheros.h"
+#define DEBUGGER 0
+
 
 //Escribe el contenido del buffer en un fichero indicado en el inodo
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
@@ -135,7 +137,24 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         return -1;
     }
 
-    return EXIT_SUCCESS;
+    //Comprobar que no haya errores de escritura y que se haya escrito todo bien.
+    if (nbytes == bytesescritos)
+    {
+#if DEBUGGER
+        printf("\tmi_write_f: BIEN\n");
+        printf("\tmi_read_f(): nbfisico = %i\n", nbfisico);
+
+#endif
+        return bytesescritos;
+    }
+    else
+    {
+#if DEBUGGER
+        printf("mi_write_f: MAL\n\tnbytes:%i\n\tbytesescritos:%i\n", nbytes, bytesescritos);
+#endif
+        return EXIT_FAILURE;
+    }
+
 
     
 }
@@ -271,7 +290,21 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         return -1;
     }
 
-    return EXIT_SUCCESS;
+    //Comprobar que no haya errores de escritura y que se haya escrito todo bien.
+    if (nbytes == leidos)
+    {
+#if DEBUGGER
+        printf("\tmi_read_f: BIEN\n");
+#endif
+        return leidos;
+    }
+    else
+    {
+#if DEBUGGER
+        printf("mi_read_f(): MAL\n\tnbytes:%i\n\tbytesleidos:%i\n", nbytes, leidos);
+#endif
+        return -1;
+    }
 
 }
 
@@ -323,4 +356,3 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
 
     return EXIT_SUCCESS;
 }
-

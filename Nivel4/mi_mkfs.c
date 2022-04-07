@@ -4,7 +4,7 @@
 #include "ficheros_basico.h"
 
 
-char* buf;
+//char* buf;
 
 
 int main(int argc, char **argv){

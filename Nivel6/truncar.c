@@ -1,4 +1,5 @@
 #include "ficheros.h"
+
 int main(int argc, char **argv){
     //Validación de sintaxis
     if (argc != 4){
@@ -18,34 +19,35 @@ int main(int argc, char **argv){
     }else{ 
         mi_truncar_f(ninodo, nbytes);
     }
-    struct inodo inodo;
-    leer_inodo(ninodo, &inodo);
+    //Inodo liberado
+    struct STAT p_stat;
+    if (mi_stat_f(ninodo, &p_stat)){
+        perror( "truncar.c: Error mi_stat_f()\n");
+        return EXIT_FAILURE;
+    }
     
     //Configurar la fecha actual para mostrarla
     struct tm *ts;
     char atime[80];
     char mtime[80];
     char ctime[80];
-    ts = localtime(&inodo.atime);
+    ts = localtime(&p_stat.atime);
     strftime(atime, sizeof(atime), "%a %Y-%m-%d %H:%M:%S", ts);
-    ts = localtime(&inodo.mtime);
+    ts = localtime(&p_stat.mtime);
     strftime(mtime, sizeof(mtime), "%a %Y-%m-%d %H:%M:%S", ts);
-    ts = localtime(&inodo.ctime);
+    ts = localtime(&p_stat.ctime);
     strftime(ctime, sizeof(ctime), "%a %Y-%m-%d %H:%M:%S", ts);
 
-    //Guardamos los permisos para mostrarlos
-    int permisos = (int)inodo.permisos;
-
-    //Mostrar datos del inodo y su tipo
-    printf("\n Datos Inodo: %d\n", ninodo);
-    printf("Tipo: %c\n", inodo.tipo);
-    printf("Permisos: %d\n", permisos);
+    //Información del inodo escrito
+    printf("\nDATOS INODO %d:\n", ninodo);
+    printf("tipo=%c\n", p_stat.tipo);
+    printf("permisos=%d\n", p_stat.permisos);
     printf("atime: %s\n", atime);
-    printf("mtime: %s\n", mtime);
     printf("ctime: %s\n", ctime);
-    printf("N. links: %d\n", inodo.nlinks);
-    printf("Tamaño en bytes lógicos: %d\n", inodo.tamEnBytesLog);
-    printf("N. de bloques ocupados: %d\n\n", inodo.numBloquesOcupados);
+    printf("mtime: %s\n", mtime);
+    printf("nLinks= %d\n", p_stat.nlinks);
+    printf("tamEnBytesLog= %d\n", p_stat.tamEnBytesLog);
+    printf("numBloquesOcupados= %d\n", p_stat.numBloquesOcupados);
 
     //Desmontar dispositivo virtual
     if(bumount() == -1){

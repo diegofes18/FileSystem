@@ -1,4 +1,6 @@
 #include "ficheros.h"
+#define DEBUGGER 0
+
 
 //Escribe el contenido del buffer en un fichero indicado en el inodo
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
@@ -132,8 +134,27 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
     if (escribir_inodo(ninodo, inodo) == -1){
         perror("Error in escribir_inodo(): mi_write_f() \n");
-        return 1;
+        return -1;
     }
+
+    //Comprobar que no haya errores de escritura y que se haya escrito todo bien.
+    if (nbytes == bytesescritos)
+    {
+#if DEBUGGER
+        printf("\tmi_write_f: BIEN\n");
+        printf("\tmi_read_f(): nbfisico = %i\n", nbfisico);
+
+#endif
+        return bytesescritos;
+    }
+    else
+    {
+#if DEBUGGER
+        printf("mi_write_f: MAL\n\tnbytes:%i\n\tbytesescritos:%i\n", nbytes, bytesescritos);
+#endif
+        return EXIT_FAILURE;
+    }
+
 
     
 }
@@ -144,7 +165,7 @@ Lee informacion de un fichero/directorio y la almacena en un buffer de memoria
 */
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
 
-   
+    //variables
     unsigned int PrimerBloque, UltimoBloque;
     int desp1, desp2, nBloqueFis;
     int leidos = 0;
@@ -269,8 +290,21 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         return -1;
     }
 
-    
-
+    //Comprobar que no haya errores de escritura y que se haya escrito todo bien.
+    if (nbytes == leidos)
+    {
+#if DEBUGGER
+        printf("\tmi_read_f: BIEN\n");
+#endif
+        return leidos;
+    }
+    else
+    {
+#if DEBUGGER
+        printf("mi_read_f(): MAL\n\tnbytes:%i\n\tbytesleidos:%i\n", nbytes, leidos);
+#endif
+        return -1;
+    }
 
 }
 
@@ -281,7 +315,7 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
     struct inodo inodo;
     if(leer_inodo(ninodo,&inodo)==-1){
         perror("error mi stat:leer inodo");
-        return EXIT_FAILURE;
+        return -1;
 
     }
     // Actualizamos valores del inodo
@@ -322,29 +356,40 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
 
     return EXIT_SUCCESS;
 }
+
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     int primerBL;
     int numBloquesLiberados;
-    //Lectura del inodo
+    struct inodo inodo;
+
+    //lectura del inodo
     leer_inodo(ninodo, &inodo);
-    //Comprobamos si los permisos son suficientes
+
+    //Comprobamos los permisos
     if ((inodo.permisos & 2) != 2){
         perror("Error en la funcion mi_truncar_f() --> No tiene permisos de escritura.");
         return -1;
-    } else if (inodo.tamEnBytesLog <= nbytes){
+    }
+    
+    if (inodo.tamEnBytesLog < nbytes){
         perror("Error en la funcion mi_truncar_f() --> en tamBytesLog");
         return -1;
     }
+
     if (nbytes % BLOCKSIZE == 0) {
-      nblogico = nbytes / BLOCKSIZE;
-    } else {
-      nblogico = nbytes / BLOCKSIZE + 1;
+      primerBL = nbytes / BLOCKSIZE;
+
+    }else {
+      primerBL = nbytes / BLOCKSIZE + 1;
     }
+
     numBloquesLiberados = liberar_bloques_inodo(primerBL, &inodo);
     inodo.numBloquesOcupados = inodo.numBloquesOcupados - numBloquesLiberados;
     inodo.mtime = time(NULL);
     inodo.ctime  = time(NULL);
     inodo.tamEnBytesLog = nbytes;
+
     escribir_inodo(ninodo, inodo);
+
     return numBloquesLiberados;
 }   
