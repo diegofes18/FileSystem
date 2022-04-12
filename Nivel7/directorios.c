@@ -1,4 +1,4 @@
-include "directorios.h"
+#include "directorios.h"
 
 /*
 Dada una cadena de caracteres camino (que comience por '/'), separa su contenido en dos
@@ -56,11 +56,11 @@ Dada una cadena de caracteres y el nº de inodo del directorio padr, donde busca
     
     //int offset = 0
     if(cant_entradas_inodo>0){
-        if((dir_inodo.permisos&4)!4){
-            return ERROR_PERMISO_LECTURA
+        if((dir_inodo.permisos&4)!=4){
+            return ERROR_PERMISO_LECTURA;
         }
 
-        if (mi_chmod_f(*permisos,&entrada,num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0){
+        if (mi_read_f(*p_inodo_dir,&entrada,num_entrada_inodo * sizeof(struct entrada), sizeof(struct entrada)) < 0){
             return ERROR_PERMISO_LECTURA;
         }
 
