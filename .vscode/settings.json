@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "ficheros_basico.h": "c"
+        "ficheros_basico.h": "c",
+        "directorios.h": "c"
     }
 }

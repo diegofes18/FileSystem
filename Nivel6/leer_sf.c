@@ -1,36 +1,35 @@
 //MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
 
-//#include "ficheros_basico.h"
-#include "directorios.h"
-#define DEBUGSB 1 //Debugger del Super Bloque
-#define DEBUG1 0  //Debugger del nivel 1
-#define DEBUG2 0  //Debugger del nivel 2
-#define DEBUG3 0  //Debugger del nivel 3
-#define DEBUG4 0  //Debugger del nivel 4
-#define DEBUG7 1  //Debugger del nivel 7
-
-//Funciones
-void mostrar_buscar_entrada(char *camino, char reservar);
+#include "ficheros_basico.h"
+#define DEBUG1 0    //Debugger del nivel 1
+#define DEBUG2 0    //Debugger del nivel 2
+#define DEBUG3 0    //Debugger del nivel 3
+#define DEBUG4 0    //Debugger del nivel 4
+#define DEBUGSB 1   //Debugger del Super Bloque
 
 //La ejecución de leer_sf.c permite mostrar el contenido del superbloque.
-int main(int argc, char const *argv[]){
+int main(int argc, char const *argv[])
+{
     //Comprobación de sintaxis correcta
-    if (argc != 2){
-        perror("Error sintaxis: ./leer_sf <nombre_dispositivo>\n");
-        return -1;
+    if (argc != 2)
+    {
+        fprintf(stderr, "Error sintaxis: ./leer_sf <nombre_dispositivo>\n");
+        return EXIT_FAILURE;
     }
 
     //Montaje del disco
-    if (bmount(argv[1]) == -1){
-        perror("Error al montar el dispositivo virtual.\n");
-        return -1;
+    if (bmount(argv[1]) == EXIT_FAILURE)
+    {
+        fprintf(stderr, "Error al montar el dispositivo virtual.\n");
+        return EXIT_FAILURE;
     }
 
     //Leectura del superbloque del disco
     struct superbloque SB;
-    if (bread(0, &SB) == -1){
-        perror("Error de lectura del superbloque.\n");
-        return -1;
+    if (bread(0, &SB) == EXIT_FAILURE)
+    {
+        fprintf(stderr, "Error de lectura del superbloque.\n");
+        return EXIT_FAILURE;
     }
 
 #if DEBUGSB
@@ -152,17 +151,22 @@ int main(int argc, char const *argv[]){
 #endif
 
 #if DEBUG4
-    int inodoReservado = reservar_inodo('f', 6);
+    int inodoReservado = reservar_inodo('f',6);
     bread(posSB, &SB);
 
-    printf("\nINODO %d - TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n", inodoReservado);
-    traducir_bloque_inodo(inodoReservado, 8, 1);
-    traducir_bloque_inodo(inodoReservado, 204, 1);
-    traducir_bloque_inodo(inodoReservado, 30004, 1);
-    traducir_bloque_inodo(inodoReservado, 400004, 1);
-    traducir_bloque_inodo(inodoReservado, 468750, 1);
+    printf("\nINODO %d - TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n",inodoReservado);
+    traducir_bloque_inodo(inodoReservado,8,1);
+    bread(posSB, &SB);
+    traducir_bloque_inodo(inodoReservado,204,1);
+    bread(posSB, &SB);
+    traducir_bloque_inodo(inodoReservado,30004,1);
+    bread(posSB, &SB);
+    traducir_bloque_inodo(inodoReservado,400004,1);\
+    bread(posSB, &SB);
+    traducir_bloque_inodo(inodoReservado,468750,1);
+    bread(posSB, &SB);
 
-    printf("\nDATOS DEL INODO RESERVADO: %d\n", inodoReservado);
+    printf("\nDATOS DEL INODO RESERVADO: %d\n",inodoReservado);
     struct tm *ts;
     char atime[80];
     char mtime[80];
@@ -181,44 +185,14 @@ int main(int argc, char const *argv[]){
     printf("nlinks: %i\n", inodo.nlinks);
     printf("tamaño en bytes lógicos: %i\n", inodo.tamEnBytesLog);
     printf("Número de bloques ocupados: %i\n", inodo.numBloquesOcupados);
-    printf("SB.posPrimerInodoLibre = %d\n", SB.posPrimerInodoLibre);
-#endif
-
-#if DEBUG7
-    //Mostrar creación directorios y errores
-    mostrar_buscar_entrada("pruebas/", 1);                 //ERROR_CAMINO_INCORRECTO
-    mostrar_buscar_entrada("/pruebas/", 0);                //ERROR_NO_EXISTE_ENTRADA_CONSULTA
-    mostrar_buscar_entrada("/pruebas/docs/", 1);           //ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO
-    mostrar_buscar_entrada("/pruebas/", 1);                // creamos /pruebas/
-    mostrar_buscar_entrada("/pruebas/docs/", 1);           //creamos /pruebas/docs/
-    mostrar_buscar_entrada("/pruebas/docs/doc1", 1);       //creamos /pruebas/docs/doc1
-    mostrar_buscar_entrada("/pruebas/docs/doc1/doc11", 1); //ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO
-    mostrar_buscar_entrada("/pruebas/", 1);                //ERROR_ENTRADA_YA_EXISTENTE
-    mostrar_buscar_entrada("/pruebas/docs/doc1", 0);       //consultamos /pruebas/docs/doc1
-    mostrar_buscar_entrada("/pruebas/docs/doc1", 1);       //creamos /pruebas/docs/doc1
-    mostrar_buscar_entrada("/pruebas/casos/", 1);          //creamos /pruebas/casos/
-    mostrar_buscar_entrada("/pruebas/docs/doc2", 1);       //creamos /pruebas/docs/doc2
+    printf("SB.posPrimerInodoLibre = %d\n",SB.posPrimerInodoLibre);
 #endif
 
     //Liberación
-    if (bumount() == -1){
-        perror("Error al desmontar el dispositivo virtual.\n");
-        return -1;
+    if (bumount() == EXIT_FAILURE)
+    {
+        fprintf(stderr, "Error al desmontar el dispositivo virtual.\n");
+        return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
-}
-
-void mostrar_buscar_entrada(char *camino, char reservar){
-    unsigned int p_inodo_dir = 0;
-    unsigned int p_inodo = 0;
-    unsigned int p_entrada = 0;
-    int error;
-    printf("\ncamino: %s, reservar: %d\n", camino, reservar);
-    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, reservar, 6);
-    //fprintf(stderr, "Error: %i\n", error);
-    if (error < 0){
-        mostrar_error_buscar_entrada(error);
-    }
-    printf("**********************************************************************\n");
-    return;
 }
