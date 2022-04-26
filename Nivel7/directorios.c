@@ -4,7 +4,27 @@
 Dada una cadena de caracteres camino (que comience por '/'), separa su contenido en dos
 */
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
-    
+    //Confirmar que empieza por '/'
+    if (camino[0] != '/') {
+    perror("Error en directorios.c extraer_camino() --> El camino debe empezar con '/'\n");
+    return -1;
+  }
+    //Posición de la siguiente barra
+    const char *next_barra = strchr(camino + 1, '/');
+    memset(inicial, 0, strlen(inicial));
+    int aux = 0;
+    if (next_barra == NULL){ //Es un File
+         strcpy(inicial, camino + 1);
+         strcpy(final, "");
+         *tipo = 'f';
+    }
+    else{ //Es un directorio
+         aux = next_barra - camino - 1;
+         strncpy(inicial, camino + 1,aux);
+         strcpy(final, next_barra);
+         *tipo = 'd';
+    }
+    return 0;
 }
 
 
