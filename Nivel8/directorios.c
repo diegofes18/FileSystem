@@ -213,5 +213,18 @@ void mostrar_error_buscar_entrada(int error) {
     return 0;
  }
  int mi_stat(const char *camino, struct STAT *p_stat){
-
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+    int errEnt = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, "4");
+    if (errEnt<0){
+        perror("Error: Ha ocurrido un error por la entrada.");
+        return errEnt;
+    }
+    errEnt = mi_stat_f(p_inodo, p_stat);
+    if (errEnt<0){
+        perror("Error: No se ha podido obtener la información del inodo");
+        return errEnt;
+    }
+    return 0;
  }
