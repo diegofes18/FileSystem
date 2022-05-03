@@ -91,10 +91,9 @@ int initMB(){
     }
 
     return EXIT_SUCCESS;
+}
 
- }
-
- /*
+/*
 Inicializamos el array de inodos
 */
 int initAI(){

@@ -1,6 +1,8 @@
 #include "ficheros.h"
 
 #define TAMNOMBRE 60 //tamaño del nombre de directorio o fichero, en ext2 = 256
+#define TAMFILA 100
+#define TAMBUFFER (TAMFILA*1000)
 
 struct entrada {
   char nombre[TAMNOMBRE];

@@ -1,30 +1,39 @@
 #include "directorios.h"
+#define DEBUG 1
 
 /*
 Dada una cadena de caracteres camino (que comience por '/'), separa su contenido en dos
 */
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo){
-    //Confirmar que empieza por '/'
-    if (camino[0] != '/') {
-    perror("Error en directorios.c extraer_camino() --> El camino debe empezar con '/'\n");
-    return -1;
-  }
-    //Posición de la siguiente barra
-    const char *next_barra = strchr(camino + 1, '/');
-    memset(inicial, 0, strlen(inicial));
-    int aux = 0;
-    if (next_barra == NULL){ //Es un File
-         strcpy(inicial, camino + 1);
-         strcpy(final, "");
-         *tipo = 'f';
+
+    //error si se empieza con /
+    if (camino[0] != '/'){
+        return -1;
     }
-    else{ //Es un directorio
-         aux = next_barra - camino - 1;
-         strncpy(inicial, camino + 1,aux);
-         strcpy(final, next_barra);
-         *tipo = 'd';
+
+    //sumamos 1 para evitar la primera /
+    char *rest = strchr((camino + 1), '/');
+    strcpy(tipo, "f");
+
+    //si encontramos '/'
+    if (rest){
+
+        //copiamos todo en inicial menos el resto
+        strncpy(inicial, (camino + 1), (strlen(camino) - strlen(rest) - 1));
+        //copiamos el resto en final
+        strcpy(final, rest);
+
+        if (final[0] == '/'){
+            strcpy(tipo, "d");
+        }
+
+    }else {
+        strcpy(inicial, (camino + 1));
+        strcpy(final, "");
     }
-    return 0;
+    
+
+    return EXIT_SUCCESS;
 }
 
 
@@ -35,13 +44,13 @@ Dada una cadena de caracteres y el nº de inodo del directorio padr, donde busca
 -El número de inodo (*p_inodo) al que está asociado el nombre de la entrada buscada.
 -El número de entrada  (*p_entrada) dentro del inodo *p_inodo_dir que lo contiene (empezando por 0).
 */
- int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos){
+int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos){
 
     struct entrada entrada;
     struct inodo dir_inodo;
     char inicial[sizeof(entrada.nombre)];      
     char final[strlen(camino_parcial)];
-    char tipo[80];
+    char tipo;
     int cant_entradas_inodo, num_entrada_inodo;
 
     memset(inicial, 0, sizeof(entrada.nombre));
@@ -49,7 +58,7 @@ Dada una cadena de caracteres y el nº de inodo del directorio padr, donde busca
     memset(entrada.nombre, 0, sizeof(entrada.nombre));
 
     //el directorio es raiz
-    if(strcmp(camino_parcial,"/")!= 0){
+    if(!strcmp(camino_parcial,"/")){
         struct superbloque SB;
         bread(posSB, &SB);
         *(p_inodo)=SB.posInodoRaiz;
@@ -57,9 +66,13 @@ Dada una cadena de caracteres y el nº de inodo del directorio padr, donde busca
         return EXIT_SUCCESS;
     } 
     
-    if(extraer_camino(camino_parcial, inicial, final,&tipo)==-1) {
+    if(extraer_camino(camino_parcial, inicial, final, &tipo) == -1) {
         return ERROR_CAMINO_INCORRECTO;
     }
+
+#if DEBUG
+    printf("[buscar_entrada()->inicial: %s, final: %s, reservar: %d]\n", inicial,final, reservar);
+#endif
 
     if(leer_inodo(*p_inodo_dir, &dir_inodo) == -1){
          return ERROR_PERMISO_LECTURA;
@@ -118,11 +131,14 @@ Dada una cadena de caracteres y el nº de inodo del directorio padr, donde busca
                 else{
                     strcpy(entrada.nombre,inicial);
                    
-                    if(tipo=='d'){
+                    if(tipo == 'd'){
                         
                         if(strcmp(final,"/")==0){
 
                             entrada.ninodo=reservar_inodo(tipo, permisos);
+#if DEBUG
+                        printf("[buscar_entrada()->reservado inodo: %d tipo %c con permisos %d para '%s']\n", entrada.ninodo, tipo, permisos, entrada.nombre);
+#endif
                         }
                         else{
 
@@ -132,12 +148,23 @@ Dada una cadena de caracteres y el nº de inodo del directorio padr, donde busca
                     else{
 
                         entrada.ninodo=reservar_inodo(tipo,permisos);
+#if DEBUG
+                    printf("[buscar()->reservado inodo: %d tipo %c con permisos %d para '%s']\n", entrada.ninodo, tipo, permisos, entrada.nombre);
+#endif
                         
                     }
+
+#if DEBUG
+                fprintf(stderr, "[buscar_entrada()->creada entrada: %s, %d] \n", inicial, entrada.ninodo);
+#endif
+
                     if(mi_write_f(*p_inodo_dir,&entrada,dir_inodo.tamEnBytesLog, sizeof(struct entrada)) == -1){
                         
                         if(entrada.ninodo!=-1){
                             liberar_inodo(entrada.ninodo);
+#if DEBUG
+                        fprintf(stderr, "[buscar_entrada()-> liberado inodo %i, reservado a %s\n", num_entrada_inodo, inicial);
+#endif
                         }
                         return -1;
                     }
@@ -167,8 +194,8 @@ Dada una cadena de caracteres y el nº de inodo del directorio padr, donde busca
     }
 
  }
-    
-    
+
+
 /*
 Se encarga de mostrar un error por pantalla
 */
