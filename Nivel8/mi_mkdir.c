@@ -24,7 +24,7 @@ int main(int argc, char **argv){
             return -1;
         }
         int error;
-        if((error = mi_creat(argv[3], permiso)) < 0){
+        if((error = creat(argv[3], permiso)) < 0){
             mostrar_error_buscar_entrada(error);
             return -1;
         }

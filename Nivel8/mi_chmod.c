@@ -21,7 +21,7 @@ int main(int argc, char **argv){
         perror("Error al montar el disco\n");
         return -1;
     }
-    r = mi_chmod_(argv[3], permisos);
+    r = mi_chmod(argv[3], permisos);
     if(r < 0){
         mostrar_error_buscar_entrada(r);
         return -1;

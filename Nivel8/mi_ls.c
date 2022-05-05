@@ -13,7 +13,7 @@ int main(int argc, char const *argv[]){
         perror("Error al montar el dispositivo virtual.");
         return -1;  
     }
-    int err = mi_dir(camino, buf);
+    int err = mi_mkdir(camino, buf);
 
     if(err < 0){
         perror("Error al listar el directorio.");

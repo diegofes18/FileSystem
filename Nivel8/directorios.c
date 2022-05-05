@@ -223,6 +223,8 @@ void mostrar_error_buscar_entrada(int error) {
   }
     return 0;  
  }
+
+ 
  int mi_chmod(const char *camino, unsigned char permisos){
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
@@ -342,7 +344,7 @@ int mi_dir(const char *camino, char *buffer, char tipo){
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
-    int errEnt = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, "4");
+    int errEnt = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, p_stat->permisos);
     if (errEnt<0){
         perror("Error: Ha ocurrido un error por la entrada.");
         return errEnt;
