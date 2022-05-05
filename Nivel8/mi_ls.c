@@ -23,7 +23,13 @@ int main(int argc, char const *argv[]){
         return -1;
     }
 
-    fprintf(stderr,"%s\n",buf);
+    if (err > -1){
+        printf("Total: %d\n", err);
+        printf("Tipo\tModo\tmTime\t\t\tTamaño\tNombre\n");
+        printf("----------------------------------------------------------"
+               "----------------------\n");
+        printf("%s\n", buf);
+    }
 
     if (bumount() == -1){
         perror("Error al desmontar el dispositivo virtual.\n");

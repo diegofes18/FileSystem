@@ -350,7 +350,7 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
     //cambiamos los permisos 
     inodo.permisos=permisos;
 
-    if (escribir_inodo(ninodo, inodo)){
+    if (escribir_inodo(ninodo, inodo)==-1){
         perror("Error en la funcion leer_inodo()");
         return -1;
     }
@@ -385,7 +385,7 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
       primerBL = nbytes / BLOCKSIZE;
 
     }else {
-      primerBL = nbytes / BLOCKSIZE + 1;
+      primerBL = (nbytes / BLOCKSIZE) + 1;
     }
 
     numBloquesLiberados = liberar_bloques_inodo(primerBL, &inodo);

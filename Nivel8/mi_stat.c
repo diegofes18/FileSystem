@@ -19,6 +19,11 @@ int main(int argc, char const *argv[])  {
         perror("Error al listar el directorio.");
         return err;
     }
+
+    int p_inodo = mi_stat(argv[2], &stat);
+
+    //Motramos valores
+    printf("Nº de inodo: %d\n", p_inodo);
     printf("Tipo: %c\n",stat.tipo);
     printf("Permisos: %c\n",stat.permisos);
     printf("atime: %s",ctime(&stat.atime));
@@ -29,9 +34,9 @@ int main(int argc, char const *argv[])  {
     printf("numBloquesOcupados: %u\n",stat.numBloquesOcupados);
     printf("Fichero: %s\n",camino);
 
-    if (bumount() == EXIT_FAILURE){
+    if (bumount() == -1){
         perror("Error al desmontar el dispositivo virtual.\n");
-        return EXIT_FAILURE;
+        return -1;
     }
     return err;
 }
