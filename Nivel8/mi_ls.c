@@ -8,22 +8,26 @@ int main(int argc, char const *argv[]){
     }
     const char *camino = argv[2];
     char buf[1000000];
+    memset(buf, 0, 1000000);
+    char tipo = '\0';
 
     if (bmount(argv[1])==-1) {
         perror("Error al montar el dispositivo virtual.");
         return -1;  
     }
-    int err = mi_mkdir(camino, buf);
+
+    int err = mi_dir(camino, buf,&tipo);
 
     if(err < 0){
-        perror("Error al listar el directorio.");
-        return err;
+        mostrar_error_buscar_entrada(err);
+        return -1;
     }
+
     fprintf(stderr,"%s\n",buf);
 
-    if (bumount() == EXIT_FAILURE){
+    if (bumount() == -1){
         perror("Error al desmontar el dispositivo virtual.\n");
-        return EXIT_FAILURE;
+        return -1;
     }
     return err;
 }

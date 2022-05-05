@@ -5,7 +5,7 @@
 a la funcion mi_creat(). Si la ruta acaba en / sera
 un directorio
 */
-int main(int argc, char **argv){
+int main(int argc, char *argv[]){
     
     if(argc != 4){
         perror("Error de sintaxis: ./mi_mkdir <disco> <permisos> </ruta>\n");
@@ -24,10 +24,11 @@ int main(int argc, char **argv){
             return -1;
         }
         int error;
-        if((error = creat(argv[3], permiso)) < 0){
+        if((error = mi_creat(argv[3], permiso)) < 0){
             mostrar_error_buscar_entrada(error);
             return -1;
         }
+        
         bumount();
     }
     else{

@@ -212,10 +212,9 @@ void mostrar_error_buscar_entrada(int error) {
 }
 
  int mi_creat(const char *camino, unsigned char permisos){     
-    unsigned int p_inodo_dir;
-    unsigned int p_inodo;
-    unsigned int p_entrada;
-    p_inodo_dir = 0;
+    unsigned int p_inodo_dir=0;
+    unsigned int p_inodo=0;
+    unsigned int p_entrada=0;
     int err = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
     if (err< 0){
         mostrar_error_buscar_entrada(err);
@@ -231,7 +230,7 @@ void mostrar_error_buscar_entrada(int error) {
     unsigned int p_entrada = 0;
     int errEnt = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
     if (errEnt<0){
-        perror("Error: Ha ocurrido un error por la entrada.");
+        //perror("Error: Ha ocurrido un error por la entrada.");
         return errEnt;
     }
     errEnt = mi_chmod_f(p_inodo, permisos);
@@ -246,7 +245,7 @@ void mostrar_error_buscar_entrada(int error) {
 /*
 Pone el contenido del directorio en un buffer de memoria y devuelve el número de entradas
 */
-int mi_dir(const char *camino, char *buffer, char tipo){
+int mi_dir(const char *camino, char *buffer, char *tipo){
 
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
@@ -278,7 +277,7 @@ int mi_dir(const char *camino, char *buffer, char tipo){
             return -1;
         }
 
-        tipo = inodo.tipo;
+        *tipo = inodo.tipo;
 
         //Buffer de salida
         struct entrada entradas[BLOCKSIZE / sizeof(struct entrada)];
@@ -346,13 +345,13 @@ int mi_dir(const char *camino, char *buffer, char tipo){
     unsigned int p_entrada = 0;
     int errEnt = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, p_stat->permisos);
     if (errEnt<0){
-        perror("Error: Ha ocurrido un error por la entrada.");
+        //perror("Error: Ha ocurrido un error por la entrada.");
         return errEnt;
     }
     errEnt = mi_stat_f(p_inodo, p_stat);
     if (errEnt<0){
-        perror("Error: No se ha podido obtener la información del inodo");
-        return errEnt;
+        //perror("Error: No se ha podido obtener la información del inodo");
+        return -1;
     }
-    return 0;
+    return p_inodo;
  }
