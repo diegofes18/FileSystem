@@ -220,3 +220,185 @@ void mostrar_error_buscar_entrada(int error) {
    case -7: fprintf(stderr, "Error: No es un directorio.\n"); break;
    }
 }
+
+
+int mi_creat(const char *camino, unsigned char permisos){
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+    int error;
+
+    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos)) < 0){
+        return error;
+    }
+    return EXIT_SUCCESS;
+}
+
+
+/* Funcion: mi_dir:
+* ---------------------------------------------------------------------
+* Esta funcion devuelve el contenido del directorio en el buffer.
+*
+* In:   camino: directorio
+*       buffer: para guardar el contenido del directorio para imprimir posteriormente
+*       tipo: para diferenciar el tipo
+*
+* Out:  El numero de entradas leidas.
+*       EXIT_FAILURE
+*/
+int mi_dir(const char *camino, char *buffer, char *tipo){
+    struct tm *tm;
+
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+    int error;
+    int nEntradas = 0;
+
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4); //Permisos para leer
+    if (error < 0){
+        mostrar_error_buscar_entrada(error);
+        return error;
+    }
+
+    struct inodo inodo;
+    if (leer_inodo(p_inodo, &inodo) == -1){
+        return -1;
+    }
+
+    if ((inodo.permisos & 4) != 4){
+        return -1;
+    }
+
+    //struct entrada entrada;
+
+    char tmp[100];       //Para el tiempo
+    char tamEnBytes[10]; //10 = valor maximo de un unsigned int
+
+
+        if (leer_inodo(p_inodo, &inodo) == -1){
+            return -1;
+        }
+
+        *tipo = inodo.tipo;
+
+        //Buffer de salida
+        struct entrada entradas[BLOCKSIZE / sizeof(struct entrada)];
+        memset(&entradas, 0, sizeof(struct entrada));
+
+        nEntradas = inodo.tamEnBytesLog / sizeof(struct entrada);
+
+        int offset = 0;
+        offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+
+        //Leemos todos las entradas
+        for (int i = 0; i < nEntradas; i++){
+            //Leer el inodo correspndiente
+            if (leer_inodo(entradas[i % (BLOCKSIZE / sizeof(struct entrada))].ninodo, &inodo) == -1){
+                return -1;
+            }
+
+            //Tipo
+            if (inodo.tipo == 'd'){
+                strcat(buffer, "d");
+            }
+
+            else{
+                strcat(buffer, "f");
+            }
+
+            strcat(buffer, "\t");
+
+            //Permisos
+            strcat(buffer, ((inodo.permisos & 4) == 4) ? "r" : "-");
+            strcat(buffer, ((inodo.permisos & 2) == 2) ? "w" : "-");
+            strcat(buffer, ((inodo.permisos & 1) == 1) ? "x" : "-");
+            strcat(buffer, "\t");
+
+            //mTime
+            tm = localtime(&inodo.mtime);
+            sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+            strcat(buffer, tmp);
+            strcat(buffer, "\t");
+
+            //Tamaño
+            sprintf(tamEnBytes, "%d", inodo.tamEnBytesLog);
+            strcat(buffer, tamEnBytes);
+            strcat(buffer, "\t");
+
+            //Nombre
+            strcat(buffer, entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre);
+            while ((strlen(buffer) % TAMFILA) != 0){
+                strcat(buffer, " ");
+            }
+
+            strcat(buffer, "\n"); //Preparamos el string para la siguiente entrada
+
+            if (offset % (BLOCKSIZE / sizeof(struct entrada)) == 0){
+                offset += mi_read_f(p_inodo, entradas, offset, BLOCKSIZE);
+            }
+        }
+    
+    return nEntradas;
+}
+
+/* Funcion: mi_chmod(const char *camino, unsigned char permisos)
+* ---------------------------------------------------------------------
+* Funcion que cambia los permisos de un fichero o directorio,
+*
+* In: camino: direccion del elemento
+*     permisos: nuevos permisos a tener
+*
+* Out: EXIT_SUCCESS 
+*      Error: El codigo de error
+* 
+* Nota: Para procesar y visualizar el codigo de error se requiere el proceso: mostrar_error_buscar_entrada()
+*
+*/
+int mi_chmod(const char *camino, unsigned char permisos){
+
+    // Inicializacion de variables.
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+    int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
+
+    if (error < 0){
+        return error;
+    }
+
+    mi_chmod_f(p_inodo, permisos);
+
+    return EXIT_SUCCESS;
+}
+
+/* Funcion: mi_stat(const char *camino, struct STAT *p_stat)
+* ---------------------------------------------------------------------
+* Funcion que obtiene la metainformacion del elemento del camino.
+*
+* In:   camino: direccion del elemento a obtener la informacion.
+*       p_stat: metainformacion del elemento.
+*
+* Out: p_inodo 
+*      Error: El codigo de error o -1
+* 
+* Nota: Para procesar y visualizar el codigo de error se requiere el proceso: mostrar_error_buscar_entrada()
+*
+*/
+int mi_stat(const char *camino, struct STAT *p_stat){
+
+    // Inicializacion de variables.
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+    int r = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, p_stat->permisos);
+    if (r < 0){
+        return r;
+    }
+
+    if (mi_stat_f(p_inodo, p_stat) == -1){
+        return -1;
+    }
+
+    return p_inodo;
+}
