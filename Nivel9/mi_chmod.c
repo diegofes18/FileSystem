@@ -1,7 +1,7 @@
 //Diego Bermejo, Marc Cañellas y Gaston Panizza
 #include "directorios.h"
 
-int main(int argc, char **argv){
+int main(int argc, char *argv[]){
     
     unsigned char permisos;
     int r;
@@ -27,5 +27,5 @@ int main(int argc, char **argv){
         return -1;
     }
     bumount();
-    return -1;
+    return EXIT_SUCCESS;
 }

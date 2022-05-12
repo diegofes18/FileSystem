@@ -59,21 +59,17 @@ int bwrite(unsigned int nbloque, const void *buf){
         //escritura del bloque
         size_t b = write(descriptor, buf, BLOCKSIZE);
 
-        if(b>=0){
-
-            //devolvemos los bytes escritos
-            return b;
-
-        }else{
-
-            perror("Error en la escritura");
-            return EXIT_FAILURE;
+        //Si no se ha podido escribir
+        if (b < 0){
+            perror("bwrite(): Error al escribir el bloque.\n");
+            return -1;
         }
 
-    }else{
-
-        perror("Error en el posicionamiento");
-        return EXIT_FAILURE;
+        return b;
+    }
+    else{
+        perror("bwrite(): Error al posicionarse en el fichero.\n");
+        return -1;
     }
 
 }
@@ -92,20 +88,16 @@ int bread(unsigned int nbloque, void *buf){
         //lectura del bloque
         size_t b = read(descriptor, buf, BLOCKSIZE);
 
-        if(b>=0){
-
-            //devolvemos los bytes leidos
-            return b;
-        }else{
-
-            perror("Error en la lectura");
-            return EXIT_FAILURE;
+        //Si no se ha podido leer
+        if (b < 0){
+            perror("bread(): Error al leer el bloque.\n");
+            return -1;
         }
-
-    }else{
-        
-        perror("Error en el posicionamiento");
-        return EXIT_FAILURE;
+        return b;
+    }
+    else{
+        perror("bread(): Error al posicionarse en el fichero.\n");
+        return -1;
     }
 
 }

@@ -1,39 +1,45 @@
-//Diego Bermejo, Marc Cañellas y Gaston Panizza
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
 #include "directorios.h"
 
-int main(int argc, char const *argv[]){
-    if (argc != 3) {
-        perror("Sintaxis incorrecta -> ./mi_ls <disco> </ruta_directorio>.");
-        return -1;
+
+#define DEBUGGER 1
+
+int main(int argc, char const *argv[])
+{
+    // Comprueba que la sintaxis sea correcta.
+    if (argc != 3)
+    {
+        fprintf(stderr,
+                "Error de sintaxis: ./mi_ls <disco></ruta_directorio>\n");
+        return EXIT_FAILURE;
     }
-    const char *camino = argv[2];
-    char buf[1000000];
-    memset(buf, 0, 1000000);
+
+    // Monta el disco en el sistema.
+    if (bmount(argv[1]) == -1)
+    {
+        fprintf(stderr, "Error de montaje de disco.\n");
+        return EXIT_FAILURE;
+    }
     char tipo = '\0';
-
-    if (bmount(argv[1])==-1) {
-        perror("Error al montar el dispositivo virtual.");
-        return -1;  
+    char buffer[TAMBUFFER];
+    memset(buffer, 0, TAMBUFFER);
+    int total;
+    if ((total = mi_dir(argv[2], buffer, &tipo)) < 0)
+    {
+        mostrar_error_buscar_entrada(total);
+        return EXIT_FAILURE;
     }
+    if (total > -1)
+    {
 
-    int err = mi_dir(camino, buf,&tipo);
-
-    if(err < 0){
-        mostrar_error_buscar_entrada(err);
-        return -1;
-    }
-
-    if (err > -1){
-        printf("Total: %d\n", err);
+#if DEBUGGER
+        printf("Total: %d\n", total);
+#endif
         printf("Tipo\tModo\tmTime\t\t\tTamaño\tNombre\n");
         printf("----------------------------------------------------------"
                "----------------------\n");
-        printf("%s\n", buf);
+        printf("%s\n", buffer);
     }
-
-    if (bumount() == -1){
-        perror("Error al desmontar el dispositivo virtual.\n");
-        return -1;
-    }
-    return err;
+    bumount();
+    return EXIT_SUCCESS;
 }

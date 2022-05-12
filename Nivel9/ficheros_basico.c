@@ -76,10 +76,10 @@ int initMB(){
         return -1;
     }
 
-    //int tamMB = SB.posUltimoBloqueMB - SB.posPrimerBloqueMB;
+    int tamMB = SB.posUltimoBloqueMB - SB.posPrimerBloqueMB;
 
     //inicializamos el mapa de bits
-    for (int i = SB.posPrimerBloqueMB; i <=SB.posUltimoBloqueMB; i++){
+    for (int i = SB.posPrimerBloqueMB; i <= tamMB + SB.posPrimerBloqueMB; i++){
         if (bwrite(i, buffer) == -1){
             return -1;
         }
@@ -510,7 +510,7 @@ int  obtener_indice (unsigned int nblogico, int nivel_punteros){
         return nblogico;
 
     }else if(nblogico < INDIRECTOS0) {//ej nblogico=204
-        return nblogico - DIRECTOS; 
+        return (nblogico - DIRECTOS); 
 
     }else if(nblogico < INDIRECTOS1){//ej nblogico=30.004 
         if(nivel_punteros == 2){
