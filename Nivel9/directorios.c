@@ -464,19 +464,18 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     return leidos;
 }
 
-{}
+int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes){
 
 
-    unsigned int p_inodo_dir, p_inodo, entrada;
-    p_inodo_dir = 0;
-inponemos a 0
-    p_inodo_dir = 0;
+    unsigned int p_inodo, entrada;
+    unsigned int p_inodo_dir = 0;
     //miramos si la escritura es sobre el mismo inodo
     //mejora UltimaEntrada
-    if (strcmp(UltimaEntradaEscritura.camino, camino) == 0)
-    {
-        p_inodo = UltimaEntradaEscritura.p_inodo;
-    }
+    //if (strcmp(UltimaEntrada.camino, camino) == 0) {
+      //  p_inodo = UltimaEntrada.p_inodo;
+    //}
+    /*
+    
     else
     {
         //buscamos la entrada i mirarmos que no nos dee errores
@@ -509,9 +508,9 @@ inponemos a 0
     {
         mi_signalSem();
     }
-    re  
-    */nodo_dir, p_inodo, p_entrada;
-	p_inodo_dir = 0;
+    return BytesEscritos;
+    */
+   /*  
 	if(strcmp(camino, ultimaEntradaLeida.camino) == 0) {
 		p_inodo = ultimaEntradaLeida.p_inodo;
 	} else {
@@ -533,5 +532,5 @@ inponemos a 0
   mi_signalSem();
 	return bytesLeidos;
   */
-//}
+}
 
