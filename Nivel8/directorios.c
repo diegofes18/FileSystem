@@ -221,13 +221,17 @@ void mostrar_error_buscar_entrada(int error) {
    }
 }
 
-
+/*
+Función de la capa de directorios que crea un fichero/directorio y su entrada de directorio.
+*/
 int mi_creat(const char *camino, unsigned char permisos){
-    unsigned int p_inodo_dir = 0;
+    //variables
+    unsigned int p_inodo_dir = 0; //suponemos que p_inodo_dir vale 0
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
     int error;
 
+    //usamos la función ebuscar_entrada con reservar=1
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos)) < 0){
         return error;
     }
@@ -235,20 +239,13 @@ int mi_creat(const char *camino, unsigned char permisos){
 }
 
 
-/* Funcion: mi_dir:
-* ---------------------------------------------------------------------
-* Esta funcion devuelve el contenido del directorio en el buffer.
-*
-* In:   camino: directorio
-*       buffer: para guardar el contenido del directorio para imprimir posteriormente
-*       tipo: para diferenciar el tipo
-*
-* Out:  El numero de entradas leidas.
-*       EXIT_FAILURE
+/*
+Función de la capa de directorios que pone el contenido del directorio 
+en un buffer de memoria y devuelve el número de entradas
 */
 int mi_dir(const char *camino, char *buffer, char *tipo){
     struct tm *tm;
-
+    //variables
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
@@ -272,8 +269,8 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
 
     //struct entrada entrada;
 
-    char tmp[100];       //Para el tiempo
-    char tamEnBytes[10]; //10 = valor maximo de un unsigned int
+    char tmp[100];       
+    char tamEnBytes[10]; 
 
 
         if (leer_inodo(p_inodo, &inodo) == -1){
@@ -342,22 +339,13 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
     return nEntradas;
 }
 
-/* Funcion: mi_chmod(const char *camino, unsigned char permisos)
-* ---------------------------------------------------------------------
-* Funcion que cambia los permisos de un fichero o directorio,
-*
-* In: camino: direccion del elemento
-*     permisos: nuevos permisos a tener
-*
-* Out: EXIT_SUCCESS 
-*      Error: El codigo de error
-* 
-* Nota: Para procesar y visualizar el codigo de error se requiere el proceso: mostrar_error_buscar_entrada()
-*
+/* 
+Se encarga de buscar la entrada *camino con buscar_entrada() 
+para obtener el nº de inodo (p_inodo).
 */
 int mi_chmod(const char *camino, unsigned char permisos){
 
-    // Inicializacion de variables.
+    //variables.
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
@@ -367,27 +355,21 @@ int mi_chmod(const char *camino, unsigned char permisos){
         return error;
     }
 
+    //si la entrada existe llamamos a la función correspondiente 
+    //de ficheros.c pasándole el p_inodo
     mi_chmod_f(p_inodo, permisos);
 
     return EXIT_SUCCESS;
 }
 
-/* Funcion: mi_stat(const char *camino, struct STAT *p_stat)
-* ---------------------------------------------------------------------
-* Funcion que obtiene la metainformacion del elemento del camino.
-*
-* In:   camino: direccion del elemento a obtener la informacion.
-*       p_stat: metainformacion del elemento.
-*
-* Out: p_inodo 
-*      Error: El codigo de error o -1
-* 
-* Nota: Para procesar y visualizar el codigo de error se requiere el proceso: mostrar_error_buscar_entrada()
-*
+
+/*
+Se encarga de buscar la entrada *camino con buscar_entrada() 
+para obtener el p_inodo.
 */
 int mi_stat(const char *camino, struct STAT *p_stat){
 
-    // Inicializacion de variables.
+    //variables.
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
@@ -396,6 +378,8 @@ int mi_stat(const char *camino, struct STAT *p_stat){
         return r;
     }
 
+    //Si la entrada existe llamamos a la función correspondiente 
+    //de ficheros.c pasándole el p_inodo
     if (mi_stat_f(p_inodo, p_stat) == -1){
         return -1;
     }

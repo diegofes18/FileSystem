@@ -3,11 +3,23 @@
 #define TAMNOMBRE 60 //tamaño del nombre de directorio o fichero, en ext2 = 256
 #define TAMFILA 100
 #define TAMBUFFER (TAMFILA*1000)
+#define PROFUNDIDAD 32             //profundidad máxima del árbol de directorios
+
+#define CACHE 10
+
+
+
 
 struct entrada {
   char nombre[TAMNOMBRE];
   unsigned int ninodo;
 };
+
+struct UltimaEntrada{
+  char camino [TAMNOMBRE*PROFUNDIDAD];
+  int p_inodo;
+};
+
 
 //Simbolos
 #define ERROR_CAMINO_INCORRECTO -1
@@ -26,3 +38,4 @@ int mi_creat(const char *camino, unsigned char permisos);
 int mi_chmod(const char *camino, unsigned char permisos);
 int mi_stat(const char *camino, struct STAT *p_stat);
 int mi_dir(const char *camino, char *buffer, char *tipo);
+int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes);
