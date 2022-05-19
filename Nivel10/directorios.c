@@ -519,7 +519,7 @@ Buscaremos la entrada camino con buscar_entrada() para obtener el p_inodo
 */
 int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes){
 
-    //variables.
+    //variables
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;
     unsigned int p_entrada = 0;
@@ -576,4 +576,125 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
 
     return escritos;
     
+}
+
+int mi_link(const char *camino1, const char *camino2){
+    unsigned int p_inodo_dir = 0, p_inodo = 0, p_entrada = 0;
+    struct entrada entrada;
+    struct inodo inodo;
+    if (buscar_entrada(camino1, &p_inodo_dir, &p_inodo, &p_entrada, 0, '0') < 0){
+        perror("Entrada de camino 1 no existe de mi_link\n");
+    }
+    int ninodo = p_inodo;
+	if (leer_inodo(ninodo, &inodo) == -1){
+        perror("Error en leer inodo de mi_link\n");
+        return -1;
+    }
+    if (inodo.tipo != 'f' && (inodo.permisos & 4) != 4){
+        perror("No tiene permisos de lectura en mi_link\n");
+        return -1;
+    }
+	p_inodo_dir = 0; //para poder volver a usarla
+
+    if (buscar_entrada(camino2, &p_inodo_dir, &p_inodo, &p_entrada, 1, '6') < 0){
+        perror("Entrada ya existe\n");
+    }
+    if (mi_read_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) == -1){
+        perror("Error en mi_read_f de mi_link\n");      
+    }
+	liberar_inodo(entrada.ninodo);
+    entrada.ninodo = ninodo;
+
+    if (mi_write_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) == -1){
+        perror("Error en mi_write_f de mi_link\n");       
+        return -1;
+    }
+    if (leer_inodo(ninodo, &inodo) == -1){
+        perror("Error en leer inodo de mi_link\n");
+        return -1;
+    }
+    inodo.nlinks++;
+    inodo.ctime = time(NULL);
+    escribir_inodo(ninodo, inodo);
+    return 0;
+} 
+
+int mi_unlink(const char *camino){
+
+    //variables
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_inodo = 0;
+    unsigned int p_entrada = 0;
+
+    int error;
+
+    //buscamos el archivo
+    error=buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
+
+    if(error<0){
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+
+    //inodo que hay que borrar
+    struct inodo inodo;
+
+    if(leer_inodo(p_inodo, &inodo) == -1){
+        return -1;
+    }
+
+    if((inodo.tipo == 'd')&&(inodo.tamEnBytesLog>0)){
+        return -1;
+    }
+
+    //inodo del directorio
+    struct inodo inodo_directorio;
+
+    if(leer_inodo(p_inodo_dir, &inodo_directorio) == -1){
+        return -1;
+    }
+
+    //numero de entradas 
+    int entradas= inodo_directorio.tamEnBytesLog/sizeof(struct entrada);
+
+    //HAY QUE ELIMINAR LA ÚLTIMA ENTRADA
+
+    //si la entrada no es laultima
+    if(p_entrada!= entradas -1){
+            struct entrada entrada;
+            if(mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada)*(entradas -1), sizeof(struct entrada)) == -1){
+                return -1;
+            }
+
+            if(mi_write_f(p_inodo_dir, &entrada, sizeof(struct entrada)*(p_entrada), sizeof(struct entrada)) == -1){
+                return -1;
+            }
+            
+    }
+
+    //si la entrada es la ultima, eliminamos
+    if(mi_truncar_f(p_inodo_dir, sizeof(struct entrada)*(entradas -1))==-1){
+        return -1;
+    }
+
+    inodo.nlinks--;
+
+    //no hay enlaces
+    if(!inodo.nlinks){
+        //liberamos inodo
+        if(liberar_inodo(p_inodo)==-1){
+            return -1;
+        }
+
+    }else{
+        //actualizamos
+        inodo.ctime=time(NULL);
+        if(escribir_inodo(p_inodo, inodo)==-1){
+            return -1;
+        }
+
+    }
+
+    return EXIT_SUCCESS;
+
 }

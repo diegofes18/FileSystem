@@ -1,11 +1,10 @@
 #include "directorios.h"
-
 #define DEBUGSB 1 //Debugger del Super Bloque
 #define DEBUG1 0  //Debugger del nivel 1
 #define DEBUG2 0  //Debugger del nivel 2
 #define DEBUG3 0  //Debugger del nivel 3
 #define DEBUG4 0  //Debugger del nivel 4
-#define DEBUG7 1  //Debugger del nivel 7
+#define DEBUG7 0  //Debugger del nivel 7
 
 //Funciones
 void mostrar_buscar_entrada(char *camino, char reservar);

@@ -24,5 +24,5 @@ int main(int argc, char const **argv) {
         perror("Error al desmontar\n"); 
         return -1;
     }
-    return EXIT_SUCCESS;
+    return 0;
 }
