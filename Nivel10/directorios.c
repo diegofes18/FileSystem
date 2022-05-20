@@ -1,8 +1,8 @@
 //MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
 
 #include "directorios.h"
-#define DEBUG 1
-#define DEBUG9 1
+#define DEBUG 0
+#define DEBUG9 0
 
 static struct UltimaEntrada UltimaEntrada[CACHE];
 int MAX=CACHE;
@@ -578,6 +578,10 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     
 }
 
+/*
+Crea el enlace de una entrada de directorio camino2 al inodo 
+ especificado por otra entrada de directorio camino1.
+*/
 int mi_link(const char *camino1, const char *camino2){
     unsigned int p_inodo_dir = 0, p_inodo = 0, p_entrada = 0;
     struct entrada entrada;
@@ -660,7 +664,7 @@ int mi_unlink(const char *camino){
     //HAY QUE ELIMINAR LA ÚLTIMA ENTRADA
 
     //si la entrada no es laultima
-    if(p_entrada!= entradas -1){
+    if(p_entrada!= (entradas -1) ){
             struct entrada entrada;
             if(mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada)*(entradas -1), sizeof(struct entrada)) == -1){
                 return -1;

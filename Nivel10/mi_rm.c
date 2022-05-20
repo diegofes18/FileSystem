@@ -9,10 +9,11 @@ int main(int argc, char const **argv) {
     const char *camino = argv[2];
     int err;
      //Montamos y comprobamos
-    if(bmount(camino)==-1) {
+    if(bmount(argv[1])==-1) {
         perror("Error el montar\n");
         return -1;
     }
+
     err = mi_unlink(camino);
     if (err < 0) {
         perror("No se ha podido borrar la entrada\n");
@@ -24,5 +25,5 @@ int main(int argc, char const **argv) {
         perror("Error al desmontar\n"); 
         return -1;
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
