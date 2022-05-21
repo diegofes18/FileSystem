@@ -3,7 +3,7 @@
 #include "ficheros_basico.h"
 
 #define DEBUG3 0 //Debugger del nivel 3
-#define DEBUG4 1 //Debugger del nivel 4
+#define DEBUG4 0 //Debugger del nivel 4
 
 /*
 Calcula el tamaño en bloques necesario para el mapa de bits
