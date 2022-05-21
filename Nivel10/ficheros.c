@@ -363,6 +363,7 @@ Trunca un fichero/directorio a los bytes indicados como nbytes,
 liberando los bloques necesarios
 */
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
+    /*
     int primerBL;
     int numBloquesLiberados;
     struct inodo inodo;
@@ -397,4 +398,57 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     escribir_inodo(ninodo, inodo);
 
     return numBloquesLiberados;
+    */
+   //Declaraciones
+    int lib;
+    struct inodo inodo;
+
+    //Leer el inodo.
+    if (leer_inodo(ninodo, &inodo) == -1)
+    {
+        fprintf(stderr, " Error mi_truncar_f(): leer_inodo()\n");
+        return -1;
+    }
+
+    //Comprobamos que el inodo tenga los permisos para escribir
+    if ((inodo.permisos & 2) != 2)
+    {
+        fprintf(stderr, " Error mi_truncar_f(): El inodo no tiene permisos.\n");
+        return -1;
+    }
+
+    //Comprobamos que no intenten truncar mas allá del tamaño de bytes lógicos
+    if (nbytes > inodo.tamEnBytesLog)
+    {
+        fprintf(stderr, " Error mi_truncar_f(): No se puede truncar porque, nbytes > tamaño de bytes lógicos");
+        return -1;
+    }
+
+    //Obtener bloque logico
+    int primerBL;
+    if (nbytes % BLOCKSIZE == 0)
+    {
+        primerBL = nbytes / BLOCKSIZE;
+    }
+    else
+    {
+        primerBL = (nbytes / BLOCKSIZE) + 1;
+    }
+
+    //Liberar bloques a partir del primerBL del inodo.
+    lib = liberar_bloques_inodo(primerBL, &inodo);
+    //Actulizar informacion
+    inodo.mtime = time(NULL);
+    inodo.ctime = time(NULL);
+    inodo.tamEnBytesLog = nbytes;
+    inodo.numBloquesOcupados -= lib;
+
+    // Escribe el inodo en el dispositivo.
+    if (escribir_inodo(ninodo, inodo) == -1)
+    {
+        fprintf(stderr, "Error mi_truncar_f(): escribir_inodo()\n");
+        return -1;
+    }
+
+    return lib;
 }   

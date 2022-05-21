@@ -583,6 +583,7 @@ Crea el enlace de una entrada de directorio camino2 al inodo
  especificado por otra entrada de directorio camino1.
 */
 int mi_link(const char *camino1, const char *camino2){
+    /*
     unsigned int p_inodo_dir = 0, p_inodo = 0, p_entrada = 0;
     struct entrada entrada;
     struct inodo inodo;
@@ -621,6 +622,76 @@ int mi_link(const char *camino1, const char *camino2){
     inodo.ctime = time(NULL);
     escribir_inodo(ninodo, inodo);
     return 0;
+    */
+
+   unsigned int p_inodo_dir1 = 0;
+    unsigned int p_inodo1 = 0;
+    unsigned int p_entrada1 = 0;
+    int error;
+
+    unsigned int p_inodo_dir2 = 0;
+    unsigned int p_inodo2 = 0;
+    unsigned int p_entrada2 = 0;
+    struct inodo inodo;
+
+    //Revisamos el camino 1
+    error = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4);
+    if (error < 0)
+    {
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+    leer_inodo(p_inodo1, &inodo);
+    if (inodo.tipo != 'f')
+    {
+        fprintf(stderr, "\033[0;31mmi_link: %s ha de ser un fichero\033[0m\n", camino1);
+        return -1;
+    }
+    if ((inodo.permisos & 4) != 4)
+    {
+        fprintf(stderr, "\033[0;31mmi_link: %s no tiene permisos de lectura\033[0m\n", camino1);
+        return ERROR_PERMISO_LECTURA;
+    }
+
+    //Revisamos el camino 2
+    error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6);
+    if (error < 0)
+    {
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+
+    struct entrada entrada2;
+    if (mi_read_f(p_inodo_dir2, &entrada2, sizeof(struct entrada) * (p_entrada2), sizeof(struct entrada)) < 0)
+    {
+        return -1;
+    }
+
+    //Creamos el enlace
+    entrada2.ninodo = p_inodo1;
+
+    //Escribimos la entrada modificada
+    if (mi_write_f(p_inodo_dir2, &entrada2, sizeof(struct entrada) * (p_entrada2), sizeof(struct entrada)) < 0)
+    {
+        return -1;
+    }
+    //Liberamos el inodo
+    if (liberar_inodo(p_inodo2) < 0)
+    {
+        return -1;
+    }
+
+    //Incrementamos la cantidad de enlaces
+    inodo.nlinks++;
+    inodo.ctime = time(NULL);
+    if (escribir_inodo(p_inodo1, inodo) == -1)
+    {
+        return -1;
+    }
+
+    return EXIT_SUCCESS;
+
+
 } 
 
 int mi_unlink(const char *camino){
@@ -666,11 +737,11 @@ int mi_unlink(const char *camino){
     //si la entrada no es laultima
     if(p_entrada!= (entradas -1) ){
             struct entrada entrada;
-            if(mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada)*(entradas -1), sizeof(struct entrada)) == -1){
+            if(mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada)*(entradas -1), sizeof(struct entrada)) < 0){
                 return -1;
             }
 
-            if(mi_write_f(p_inodo_dir, &entrada, sizeof(struct entrada)*(p_entrada), sizeof(struct entrada)) == -1){
+            if(mi_write_f(p_inodo_dir, &entrada, sizeof(struct entrada)*(p_entrada), sizeof(struct entrada)) <0){
                 return -1;
             }
             
