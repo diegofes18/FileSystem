@@ -6,7 +6,7 @@ int main(int argc, char **argv){
 
   //Comprobamos sintaxis
   if (argc!=5) {
-    fprintf(stderr, "Sintaxis: mi_escribir <nombre_dispositivo> </ruta_fichero> <texto> <offset>\n");
+    perror("Sintaxis: mi_escribir <nombre_dispositivo> </ruta_fichero> <texto> <offset>\n");
     exit(-1);
    }
 
@@ -20,7 +20,7 @@ int main(int argc, char **argv){
 
   //obtenemos la ruta y comprobamos que no se refiera a un directorio
   if (argv[2][strlen(argv[2])-1]=='/') {
-    fprintf(stderr, "Error: la ruta se corresponde a un directorio");
+    perror("Error: la ruta se corresponde a un directorio");
     exit(-1);
   }
   char *camino = argv[2];

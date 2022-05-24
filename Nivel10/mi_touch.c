@@ -3,7 +3,7 @@
 
 
 int main(int argc, char const *argv[]){
-    //sintaxis correcta
+    //sintaxis incorrecta
     if (argc != 4){
         perror("Error de sintaxis: ./mi_mkdir <disco><permisos></ruta>\n");
         return -1;

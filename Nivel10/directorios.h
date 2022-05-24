@@ -1,4 +1,7 @@
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
+
 #include "ficheros.h"
+
 
 #define TAMNOMBRE 60 //tamaño del nombre de directorio o fichero, en ext2 = 256
 #define TAMFILA 100

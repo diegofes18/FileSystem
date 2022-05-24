@@ -1,3 +1,5 @@
+//Diego Bermejo Marc Cañellas y Gaston Panizza
+
 #include "directorios.h"
 #define DEBUGSB 1 //Debugger del Super Bloque
 #define DEBUG1 0  //Debugger del nivel 1

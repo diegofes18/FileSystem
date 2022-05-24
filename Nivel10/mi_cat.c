@@ -8,16 +8,14 @@ int main(int argc, char **argv){
    
 
    //Comprobamos que los parametros sean correctos
-    if (argc != 3)
-    {
-        fprintf(stderr, "Sintaxis errónea: ./mi_cat <disco> </ruta_fichero>\n");
-        return EXIT_FAILURE;
+    if (argc != 3){
+        perror("Sintaxis errónea: ./mi_cat <disco> </ruta_fichero>\n");
+        return -1;
     }
     // Montar el dispositivo en el sistema.
-    if (bmount(argv[1]) == EXIT_FAILURE)
-    {
-        fprintf(stderr, "mi_cat.c: Error al montar el dispositivo.\n");
-        return EXIT_FAILURE;
+    if (bmount(argv[1]) == -1){
+        perror("mi_cat.c: Error al montar el dispositivo.\n");
+        return -1;
     }
 
     //Obtenemos los parámetros de argv
@@ -32,8 +30,7 @@ int main(int argc, char **argv){
 
     //Leemos todo el fichero o hasta completar el buffer
     bytes_leidosAux = mi_read(camino, buffer, offset, tambuffer);
-    while (bytes_leidosAux > 0)
-    {
+    while (bytes_leidosAux > 0){
         //Actualiza el número de bytes leidos.
         bytes_leidos += bytes_leidosAux;
 
@@ -48,8 +45,7 @@ int main(int argc, char **argv){
     }
 
     fprintf(stderr, " \n");
-    if (bytes_leidos < 0)
-    {
+    if (bytes_leidos < 0){
         mostrar_error_buscar_entrada(bytes_leidos);
         bytes_leidos = 0;
     }

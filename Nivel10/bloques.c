@@ -7,7 +7,7 @@ static int descriptor = 0;
 
 /*
 Función que se encarga de montar el dispositivo virtual, 
-devuelve el descriptor o EXIT_FAILURE (si ha ido mal)
+devuelve el descriptor o -1 (si ha ido mal)
 */
 int bmount(const char *camino){
 
@@ -18,7 +18,7 @@ int bmount(const char *camino){
     if(descriptor==-1){
 
         perror("Error al abrir el fichero");
-        return EXIT_FAILURE;
+        return -1;
     }
     else{
 
@@ -30,13 +30,13 @@ int bmount(const char *camino){
 /*
 Funcion que desmonta el dispositivo virtual
 0->si se ha cerrado correctamente
-1->si ha habido error
+-1->si ha habido error
 */
 int bumount(){
 
     if (close(descriptor)==-1) {
         
-        return EXIT_FAILURE;
+        return -1;
     }
     else{
         

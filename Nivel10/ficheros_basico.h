@@ -74,7 +74,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
 int obtener_indice (unsigned int nblogico, int nivel_punteros);
 int obtener_nRangoBL (struct inodo *inodo , unsigned int nblogico, unsigned int *ptr);
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo);
-int liberar_inodo(unsigned int ninodo) ;
+int liberar_inodo(unsigned int ninodo);
 
 #define NPUNTEROS (BLOCKSIZE / sizeof(unsigned int)) // 256
 #define DIRECTOS 12

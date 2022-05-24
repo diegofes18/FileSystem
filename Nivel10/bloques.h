@@ -1,4 +1,4 @@
-//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZAs
+//MARC CAÑELLAS, DIEGO BERMEJO, GASTON PANIZZA
  
 #include <stdio.h>  //printf(), fprintf(), stderr, stdout, stdin
 #include <fcntl.h> //O_WRONLY, O_CREAT, O_TRUNC

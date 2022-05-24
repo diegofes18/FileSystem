@@ -7,16 +7,14 @@
 int main(int argc, char const *argv[])
 {
     // Comprueba que la sintaxis sea correcta.
-    if (argc != 3)
-    {
+    if (argc != 3){
         fprintf(stderr,
                 "Error de sintaxis: ./mi_ls <disco></ruta_directorio>\n");
         return EXIT_FAILURE;
     }
 
     // Monta el disco en el sistema.
-    if (bmount(argv[1]) == -1)
-    {
+    if (bmount(argv[1]) == -1){
         fprintf(stderr, "Error de montaje de disco.\n");
         return EXIT_FAILURE;
     }
@@ -24,13 +22,11 @@ int main(int argc, char const *argv[])
     char buffer[TAMBUFFER];
     memset(buffer, 0, TAMBUFFER);
     int total;
-    if ((total = mi_dir(argv[2], buffer, &tipo)) < 0)
-    {
+    if ((total = mi_dir(argv[2], buffer, &tipo)) < 0){
         mostrar_error_buscar_entrada(total);
         return EXIT_FAILURE;
     }
-    if (total > -1)
-    {
+    if (total > -1){
 
 #if DEBUGGER
         printf("Total: %d\n", total);
