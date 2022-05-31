@@ -7,7 +7,6 @@
 #include <unistd.h> // SEEK_SET, read(), write(), open(), close(), lseek()
 #include <errno.h>  //errno
 #include <string.h> // strerror()
-
  
 #define BLOCKSIZE 1024 // bytes
  
@@ -15,3 +14,5 @@ int bmount(const char *camino);
 int bumount();
 int bwrite(unsigned int nbloque, const void *buf);
 int bread(unsigned int nbloque, void *buf);
+void mi_waitSem();
+void mi_signalSem();

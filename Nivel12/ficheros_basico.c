@@ -4,7 +4,6 @@
 
 #define DEBUG3 0 //Debugger del nivel 3
 #define DEBUG4 0 //Debugger del nivel 4
-#define DEBUGN6 1 //debugger para el numero de bwrites y breads
 
 /*
 Calcula el tamaño en bloques necesario para el mapa de bits
