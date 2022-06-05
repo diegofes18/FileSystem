@@ -22,7 +22,7 @@ int main(int argc, char const *argv[])
     char buffer[TAMBUFFER];
     memset(buffer, 0, TAMBUFFER);
     int total;
-    if ((total = mi_dir(argv[2], buffer, tipo)) < 0){
+    if ((total = mi_dir(argv[2], buffer, &tipo)) < 0){
         mostrar_error_buscar_entrada(total);
         return EXIT_FAILURE;
     }

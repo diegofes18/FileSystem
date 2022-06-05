@@ -78,6 +78,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         //Parte 2: Bloques intermedios
         for (int i = primerBL + 1; i < ultimoBL; i++){
             //Obtenemos los bloques intermedios
+            mi_waitSem();
             nbfisico = traducir_bloque_inodo(ninodo, i, 1);
             if (nbfisico == -1){
                 perror("Error mi_write_f(): traducir_bloque_inodo()\n");
@@ -128,6 +129,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     //Leer el inodo actualizado.
     if (leer_inodo(ninodo, &inodo) == -1){
         perror("Error leer_inodo(): mi_write_f() \n");
+        mi_signalSem();
         return -1;
     }
 
@@ -142,6 +144,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
     if (escribir_inodo(ninodo, inodo) == -1){
         perror("Error escribir_inodo(): mi_write_f() \n");
+        mi_signalSem();
         return -1;
     }
 
@@ -153,7 +156,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         fprintf(stderr,"\tmi_write_f: BIEN\n");
         fprintf(stderr,"\tmi_read_f(): nbfisico = %i\n", nbfisico);
 #endif
-        mi_signalSem();
+        
         return bytesescritos;
     }
 
@@ -161,7 +164,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 #if DEBUGGER
         fprintf(stderr,"mi_write_f: MAL\n\tnbytes:%i\n\tbytesescritos:%i\n", nbytes, bytesescritos);
 #endif
-        mi_signalSem();
+        
         return -1;
     }
 }

@@ -110,7 +110,7 @@ int main(int argc, char const *argv[]){
             exit(0); //necesario para que se emita la señal SIGCHLD
         }
 
-        usleep(150000); //esperar 0,15 seg para lanzar siguiente proceso
+        usleep(200000); //esperar 0,15 seg para lanzar siguiente proceso
     }
 
      //permitimos que el padre espere por todos los hijos
