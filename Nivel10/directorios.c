@@ -3,6 +3,7 @@
 #include "directorios.h"
 #define DEBUG8 0
 #define DEBUG9 0
+#define DEBUG10 1
 
 
 static struct UltimaEntrada UltimaEntrada[CACHE];
@@ -247,7 +248,7 @@ int mi_creat(const char *camino, unsigned char permisos){
 }
 
 //Devuelve el contenido del del directorio del buffer
-int mi_dir(const char *camino, char *buffer, char *tipo){
+int mi_dir(const char *camino, char *buffer, char tipo){
     struct tm *tm;
     //variables
     unsigned int p_inodo_dir = 0;
@@ -281,7 +282,7 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
             return -1;
         }
 
-        *tipo = inodo.tipo;
+    tipo = inodo.tipo;
 
         //Buffer de salida
         struct entrada entradas[BLOCKSIZE / sizeof(struct entrada)];
@@ -343,7 +344,7 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
     }else{ //es un archivo
         mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada) * p_entrada, sizeof(struct entrada));
         leer_inodo(entrada.ninodo, &inodo);
-        *tipo = inodo.tipo;
+        tipo = inodo.tipo;
 
         
         if (inodo.tipo == 'd'){
@@ -469,8 +470,10 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             strcpy(UltimaEntrada[CACHE-MAX].camino, camino);
             UltimaEntrada[CACHE-MAX].p_inodo = p_inodo;
             MAX--;
-#if DEBUG9
-            perror("[mi_write() → Actualizamos la caché de escritura]\n");
+#if DEBUG10
+            perror("[mi_write() → Actualizamos la caché de escritura, no esta llena (añadimos)]\n");
+            printf("Tamaño CAHCE: %d",MAX);
+
 #endif
 
         }else{
@@ -482,8 +485,9 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             strcpy(UltimaEntrada[CACHE-1].camino, camino);
             UltimaEntrada[CACHE-1].p_inodo = p_inodo;
 
-#if DEBUG9
-            perror("[mi_write() → Actualizamos la caché de escritura]\n");
+#if DEBUG10
+            
+            perror("[mi_write() → Actualizamos la caché de escritura, cache llena]\n");
 #endif
         }
     }

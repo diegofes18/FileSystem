@@ -4,5 +4,6 @@
         "directorios.h": "c",
         "semaforo_mutex_posix.h": "c",
         "bloques.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
 }

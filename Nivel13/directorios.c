@@ -250,7 +250,7 @@ int mi_creat(const char *camino, unsigned char permisos){
 }
 
 //Devuelve el contenido del del directorio del buffer
-int mi_dir(const char *camino, char *buffer, char *tipo){
+int mi_dir(const char *camino, char *buffer, char tipo){
     struct tm *tm;
     //variables
     unsigned int p_inodo_dir = 0;
@@ -262,7 +262,7 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4); //Permisos para leer
     if (error < 0){
         mostrar_error_buscar_entrada(error);
-        return error;
+        return -1;
     }
 
     struct inodo inodo;
@@ -279,12 +279,10 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
     char tmp[100];       
     char tamEnBytes[10]; 
 
-    if (camino[(strlen(camino)) - 1] == '/'){
+    if (tipo == 'd'){
         if (leer_inodo(p_inodo, &inodo) == -1){
             return -1;
         }
-
-        *tipo = inodo.tipo;
 
         //Buffer de salida
         struct entrada entradas[BLOCKSIZE / sizeof(struct entrada)];
@@ -346,7 +344,6 @@ int mi_dir(const char *camino, char *buffer, char *tipo){
     }else{ //es un archivo
         mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada) * p_entrada, sizeof(struct entrada));
         leer_inodo(entrada.ninodo, &inodo);
-        *tipo = inodo.tipo;
 
         
         if (inodo.tipo == 'd'){
@@ -471,7 +468,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
         if(MAX>0){
             strcpy(UltimaEntrada[CACHE-MAX].camino, camino);
             UltimaEntrada[CACHE-MAX].p_inodo = p_inodo;
-            MAX--;
+            --MAX;
 #if DEBUG9
             perror("[mi_write() → Actualizamos la caché de escritura]\n");
 #endif
@@ -544,7 +541,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
         if(MAX>0){
             strcpy(UltimaEntrada[CACHE - MAX].camino, camino);
             UltimaEntrada[CACHE - MAX].p_inodo = p_inodo;
-            MAX--;
+            --MAX;
 
 #if DEBUG9
             perror("[mi_read() → Actualizamos la caché de lectura]\n");
@@ -602,7 +599,10 @@ int mi_link(const char *camino1, const char *camino2){
         return -1;
     }
 
-    leer_inodo(p_inodo1,&inodo);
+    if (leer_inodo(p_inodo1, &inodo) < 0){
+        mi_signalSem();
+        return -1;
+    }
 
     if (inodo.tipo != 'f'){
         fprintf(stderr, "\033[0;31mmi_link: %s ha de ser un fichero\033[0m\n", camino1);
@@ -663,8 +663,9 @@ int mi_unlink(const char *camino){
     mi_waitSem();
     //variables
     unsigned int p_inodo_dir = 0;
-    unsigned int p_inodo = 0;
+    unsigned int p_inodo;
     unsigned int p_entrada = 0;
+    p_inodo_dir = p_inodo = SB.posInodoRaiz;
 
     int error;
 
@@ -674,6 +675,13 @@ int mi_unlink(const char *camino){
     if(error<0){
         mostrar_error_buscar_entrada(error);
         mi_signalSem();
+        return -1;
+    }
+
+    //Mirar que el inodo no sea el inodo raiz
+    if (SB.posInodoRaiz == p_inodo){
+        mi_signalSem();
+        perror("mi_unlink: El inodo es el inodo raiz\n");
         return -1;
     }
 
